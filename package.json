@@ -1,5 +1,5 @@
 {
-  "name": "elm-vite",
+  "name": "bms_chart",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
