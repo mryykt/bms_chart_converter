@@ -1,41 +1,49 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
+import Bytes exposing (Bytes)
+import File exposing (File)
+import File.Select as Select
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Task
 
 
-type alias Model =
-    { draft : String
-    , messages : List String
-    }
+port loadBMS : { name : String, buf : String } -> Cmd msg
+
+
+type Model
+    = Init (Maybe String)
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { draft = "", messages = [] }
+    ( Init Nothing
     , Cmd.none
     )
 
 
 type Msg
-    = DraftChanged String
-    | Send
+    = FileRequested
+    | FileSelected File
+    | FileLoaded String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        DraftChanged draft ->
-            ( { model | draft = draft }
-            , Cmd.none
-            )
+    case ( model, msg ) of
+        ( Init _, FileRequested ) ->
+            ( model, Select.file [ "text/plain" ] FileSelected )
 
-        Send ->
-            ( { model | draft = "", messages = model.messages ++ [ model.draft ] }
-            , Cmd.none
-            )
+        ( Init _, FileSelected file ) ->
+            ( Init (Just <| File.name file), Task.perform FileLoaded (File.toString file) )
+
+        ( Init (Just name), FileLoaded buf ) ->
+            ( model, loadBMS { name = name, buf = buf } )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -46,17 +54,8 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ h1 [] [ text "Echo Chat" ]
-        , input
-            [ type_ "text"
-            , placeholder "Draft"
-            , onInput DraftChanged
-            , value model.draft
-            ]
-            []
-        , button [ onClick Send ] [ text "Send" ]
-        , ul []
-            (List.map (\msg -> li [] [ text msg ]) model.messages)
+        [ h1 [] [ text "hello" ]
+        , button [ onClick FileRequested ] [ text "file" ]
         ]
 
 
