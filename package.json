@@ -9,11 +9,11 @@
   },
   "devDependencies": {
     "elm": "^0.19.1-5",
+    "elm-hot": "^1.1.6",
     "elm-test": "^0.19.1-revision7",
     "http-server": "^14.1.1",
-    "typescript": "^4.3.2",
-    "vite": "^5.4.10",
-    "vite-plugin-elm": "^2.4.2"
+    "parcel-bundler": "^1.12.5",
+    "typescript": "^4.3.2"
   },
   "dependencies": {
     "bms": "^51.0.0"
