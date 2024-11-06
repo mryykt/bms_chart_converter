@@ -21,4 +21,4 @@ base n =
                     code - Char.toCode 'A' + 10
                   )
     in
-    String.foldr f 0
+    String.foldl f 0

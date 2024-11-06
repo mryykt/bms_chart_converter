@@ -6,6 +6,12 @@ import Json.Decode as D exposing (Decoder)
 import Tuple
 
 
+type alias RawBMS =
+    { headers : Headers
+    , data : List RawData
+    }
+
+
 type alias Headers =
     { bpm : Float
     , waves : Dict Int String
@@ -20,11 +26,16 @@ type alias RawData =
     }
 
 
+decodeRawBMS : Decoder RawBMS
+decodeRawBMS =
+    D.map2 RawBMS (D.field "header" decodeHeaders) (D.field "data" (D.list decodeRawData))
+
+
 decodeHeaders : Decoder Headers
 decodeHeaders =
     let
         f =
-            Tuple.mapFirst <| base 36 << String.dropLeft 3
+            Tuple.mapFirst <| base 36
     in
     D.map2 Headers (D.field "bpm" D.float) (D.field "waves" (D.map (Dict.fromList << List.map f) (D.keyValuePairs D.string)))
 

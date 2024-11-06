@@ -1,5 +1,6 @@
 port module Main exposing (..)
 
+import BMS.Types exposing (RawBMS, decodeRawBMS)
 import Browser
 import Bytes exposing (Bytes)
 import File exposing (File)
@@ -7,10 +8,15 @@ import File.Select as Select
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode exposing (Error, decodeValue)
+import Json.Encode exposing (Value)
 import Task
 
 
-port loadBMS : { name : String, buf : String } -> Cmd msg
+port compileBMS : { name : String, buf : String } -> Cmd msg
+
+
+port loadBMS : (Value -> msg) -> Sub msg
 
 
 type Model
@@ -28,6 +34,7 @@ type Msg
     = FileRequested
     | FileSelected File
     | FileLoaded String
+    | LoadBMS (Result Error RawBMS)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -40,7 +47,7 @@ update msg model =
             ( Init (Just <| File.name file), Task.perform FileLoaded (File.toString file) )
 
         ( Init (Just name), FileLoaded buf ) ->
-            ( model, loadBMS { name = name, buf = buf } )
+            ( model, compileBMS { name = name, buf = buf } )
 
         _ ->
             ( model, Cmd.none )
@@ -48,7 +55,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    loadBMS (LoadBMS << decodeValue decodeRawBMS)
 
 
 view : Model -> Html Msg
