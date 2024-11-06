@@ -11,7 +11,7 @@ type alias BMS =
     , header : Headers
     , mlens : Dict Int Float
     , notes : List Note
-    , others : List OtheObject
+    , others : List RawData
     }
 
 
@@ -48,10 +48,6 @@ key nt =
             k
 
 
-type alias OtheObject =
-    RawData
-
-
 type alias RawBMS =
     { name : String
     , headers : Headers
@@ -59,17 +55,13 @@ type alias RawBMS =
     }
 
 
+type alias RawData =
+    Object Int String
+
+
 type alias Headers =
     { bpm : Float
     , waves : Dict Int String
-    }
-
-
-type alias RawData =
-    { measure : Int
-    , fraction : Float
-    , value : String
-    , channel : Int
     }
 
 
@@ -101,7 +93,7 @@ decodeHeaders =
 
 decodeRawData : Decoder RawData
 decodeRawData =
-    D.map4 RawData
+    D.map4 Object
         (D.field "measure" D.int)
         (D.field "fraction" D.float)
         (D.field "value" D.string)

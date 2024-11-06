@@ -10,16 +10,16 @@ fromRawData : RawBMS -> BMS
 fromRawData { name, headers, data } =
     let
         ( mlens, others ) =
-            List.partition ((==) 2 << .channel) data
+            List.partition ((==) 2 << .ext) data
 
         ( notes, others_ ) =
-            List.partition (\x -> 36 <= x.channel && x.channel <= 36 * 7) others
+            List.partition (\x -> 36 <= x.ext && x.ext <= 36 * 7) others
 
         mlens_ =
             Dict.fromList <| List.map (\x -> ( x.measure, Maybe.withDefault 1.0 <| String.toFloat x.value )) mlens
 
         notes_ =
-            List.map (\x -> { measure = x.measure, fraction = x.fraction, value = base 36 x.value, ext = toNoteType x.channel }) notes
+            List.map (\x -> { measure = x.measure, fraction = x.fraction, value = base 36 x.value, ext = toNoteType x.ext }) notes
 
         toNoteType ch =
             if 36 <= ch && ch <= 2 * 36 then
