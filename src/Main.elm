@@ -41,7 +41,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( model, msg ) of
         ( Init _, FileRequested ) ->
-            ( model, Select.file [ "text/plain" ] FileSelected )
+            ( model, Select.file [ "text" ] FileSelected )
 
         ( Init _, FileSelected file ) ->
             ( Init (Just <| File.name file), Task.perform FileLoaded (File.toString file) )
