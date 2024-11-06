@@ -6,6 +6,21 @@ import Json.Decode as D exposing (Decoder)
 import Tuple
 
 
+type alias BMS =
+    { chartType : ChartType
+    , header : Headers
+    , mlens : Dict Int Float
+    , notes : List Note
+    , others : List OtheObject
+    }
+
+
+type ChartType
+    = Key7
+    | Key5
+    | Key9
+
+
 type alias Object x v =
     { measure : Int
     , fraction : Float
@@ -23,12 +38,23 @@ type NoteType
     | Long Int Float
 
 
+key : NoteType -> Int
+key nt =
+    case nt of
+        Normal k ->
+            k
+
+        Long k _ ->
+            k
+
+
 type alias OtheObject =
-    Object () String
+    RawData
 
 
 type alias RawBMS =
-    { headers : Headers
+    { name : String
+    , headers : Headers
     , data : List RawData
     }
 
@@ -49,7 +75,7 @@ type alias RawData =
 
 decodeRawBMS : Decoder RawBMS
 decodeRawBMS =
-    D.map2 RawBMS (D.field "header" decodeHeaders) (D.field "data" (D.list decodeRawData))
+    D.map3 RawBMS (D.field "name" D.string) (D.field "header" decodeHeaders) (D.field "data" (D.list decodeRawData))
 
 
 decodeHeaders : Decoder Headers

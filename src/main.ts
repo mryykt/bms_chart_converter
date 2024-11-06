@@ -15,6 +15,7 @@ app.ports.compileBMS.subscribe(async (file: { name: string; buf: string }) => {
   const bpm = b.chart.headers.get("bpm");
   if (bpm) {
     app.ports.loadBMS.send({
+      name: file.name,
       header: { bpm: parseFloat(bpm), waves },
       data: b.chart.objects.all(),
     });
