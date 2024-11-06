@@ -75,7 +75,19 @@ type alias RawData =
 
 decodeRawBMS : Decoder RawBMS
 decodeRawBMS =
-    D.map3 RawBMS (D.field "name" D.string) (D.field "header" decodeHeaders) (D.field "data" (D.list decodeRawData))
+    let
+        comp a b =
+            case compare a.measure b.measure of
+                LT ->
+                    LT
+
+                GT ->
+                    GT
+
+                EQ ->
+                    compare a.fraction b.fraction
+    in
+    D.map3 RawBMS (D.field "name" D.string) (D.field "header" decodeHeaders) (D.field "data" (D.map (List.sortWith comp) <| D.list decodeRawData))
 
 
 decodeHeaders : Decoder Headers
