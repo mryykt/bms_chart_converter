@@ -6,6 +6,27 @@ import Json.Decode as D exposing (Decoder)
 import Tuple
 
 
+type alias Object x v =
+    { measure : Int
+    , fraction : Float
+    , value : v
+    , ext : x
+    }
+
+
+type alias Note =
+    Object NoteType Int
+
+
+type NoteType
+    = Normal Int
+    | Long Int Float
+
+
+type alias OtheObject =
+    Object () String
+
+
 type alias RawBMS =
     { headers : Headers
     , data : List RawData
