@@ -1,8 +1,9 @@
-module BMS.Convert exposing (fromRawData)
+module BMS.Convert exposing (fromRawData, separateByMeasure)
 
 import BMS.Types exposing (..)
 import BMS.Utils exposing (base)
 import Dict
+import List.Extra as List
 import String.Extra as String
 
 
@@ -70,3 +71,8 @@ fromRawData { name, headers, data } =
     , notes = List.map (adjustKey chartType) notes_
     , others = others_
     }
+
+
+separateByMeasure : List (Object x v) -> List ( Int, List (Object x v) )
+separateByMeasure =
+    List.groupWhile (\a b -> a.measure == b.measure) >> List.map (\( a, b ) -> ( a.measure, a :: b ))

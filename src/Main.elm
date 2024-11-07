@@ -1,8 +1,8 @@
 port module Main exposing (..)
 
-import BMS.Types exposing (RawBMS, decodeRawBMS)
+import BMS.Convert as Conv
+import BMS.Types exposing (BMS, Note, RawBMS, decodeRawBMS)
 import Browser
-import Bytes exposing (Bytes)
 import File exposing (File)
 import File.Select as Select
 import Html exposing (..)
@@ -21,6 +21,7 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 type Model
     = Init (Maybe String)
+    | Preview BMS (List ( Int, List Note ))
 
 
 init : () -> ( Model, Cmd Msg )
@@ -48,6 +49,18 @@ update msg model =
 
         ( Init (Just name), FileLoaded buf ) ->
             ( model, compileBMS { name = name, buf = buf } )
+
+        ( Init (Just _), LoadBMS result ) ->
+            case result of
+                Ok raw ->
+                    let
+                        data =
+                            Conv.fromRawData raw
+                    in
+                    ( Preview data (Conv.separateByMeasure data.notes), Cmd.none )
+
+                Err _ ->
+                    Debug.todo ""
 
         _ ->
             ( model, Cmd.none )
