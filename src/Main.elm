@@ -1,13 +1,14 @@
 port module Main exposing (..)
 
 import BMS.Convert as Conv
+import BMS.Preview as Preview
 import BMS.Types exposing (BMS, Note, RawBMS, decodeRawBMS)
 import Browser
 import File exposing (File)
 import File.Select as Select
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
+import Html.Styled as Html exposing (Html, button, div, text)
+import Html.Styled.Attributes exposing (..)
+import Html.Styled.Events exposing (onClick)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
 import Task
@@ -73,17 +74,21 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ h1 [] [ text "hello" ]
-        , button [ onClick FileRequested ] [ text "file" ]
-        ]
+    case model of
+        Init _ ->
+            div []
+                [ button [ onClick FileRequested ] [ text "file" ]
+                ]
+
+        Preview bms sep ->
+            Preview.view bms sep
 
 
 main : Program () Model Msg
 main =
     Browser.element
         { init = init
-        , view = view
+        , view = Html.toUnstyled << view
         , update = update
         , subscriptions = subscriptions
         }
