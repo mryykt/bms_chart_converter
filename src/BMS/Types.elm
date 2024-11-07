@@ -61,6 +61,7 @@ setKey k nt =
 type alias RawBMS =
     { name : String
     , headers : Headers
+    , mlens : Dict Int Float
     , data : List RawData
     }
 
@@ -89,7 +90,11 @@ decodeRawBMS =
                 EQ ->
                     compare a.fraction b.fraction
     in
-    D.map3 RawBMS (D.field "name" D.string) (D.field "header" decodeHeaders) (D.field "data" (D.map (List.sortWith comp) <| D.list decodeRawData))
+    D.map4 RawBMS
+        (D.field "name" D.string)
+        (D.field "header" decodeHeaders)
+        (D.field "mlens" <| D.map (Dict.fromList << List.map (Tuple.mapFirst (Maybe.withDefault -1 << String.toInt))) (D.keyValuePairs D.float))
+        (D.field "data" (D.map (List.sortWith comp) <| D.list decodeRawData))
 
 
 decodeHeaders : Decoder Headers

@@ -17,6 +17,7 @@ app.ports.compileBMS.subscribe(async (file: { name: string; buf: string }) => {
     app.ports.loadBMS.send({
       name: file.name,
       header: { bpm: parseFloat(bpm), waves },
+      mlens: (b.chart.timeSignatures as any)._values,
       data: b.chart.objects.all(),
     });
   } else {

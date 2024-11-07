@@ -2,13 +2,14 @@ module BMS.Preview exposing (view)
 
 import BMS.Types exposing (BMS, Note, key)
 import Css exposing (..)
+import Dict
 import Html.Styled as Html exposing (Html)
 import List.Extra exposing (gatherEqualsBy)
 import Svg.Styled.Attributes exposing (css, id)
 
 
 view : BMS -> List ( Int, List Note ) -> Html msg
-view _ notess =
+view bms notess =
     let
         oneMeasure ( measure, notes ) =
             let
@@ -19,7 +20,7 @@ view _ notess =
                 [ id <| "measure-" ++ String.fromInt measure
                 , css
                     [ position relative
-                    , height (pct 20)
+                    , height (pct <| 20 * (Maybe.withDefault 1.0 <| Dict.get measure bms.mlens))
                     , width (pct 15)
                     , minWidth (px 150)
                     , padding2 zero (px 5)
