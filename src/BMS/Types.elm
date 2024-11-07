@@ -48,6 +48,16 @@ key nt =
             k
 
 
+setKey : Int -> NoteType -> NoteType
+setKey k nt =
+    case nt of
+        Normal _ ->
+            Normal k
+
+        Long _ l ->
+            Long k l
+
+
 type alias RawBMS =
     { name : String
     , headers : Headers
