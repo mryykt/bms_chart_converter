@@ -1,6 +1,6 @@
 module BMS.Preview exposing (view)
 
-import BMS.Types exposing (BMS, Note, key)
+import BMS.Types exposing (BMS, Note, NoteType(..), key)
 import Css exposing (..)
 import Dict
 import Html.Styled as Html exposing (Html)
@@ -76,13 +76,25 @@ lane ( k, notes ) =
 
         note n =
             Html.div
-                [ css
-                    [ position absolute
-                    , bottom (pct (100 * n.fraction))
-                    , width (pct 100)
-                    , height (px 4)
-                    , backgroundColor c
-                    ]
+                [ css <|
+                    case n.ext of
+                        Normal _ ->
+                            [ position absolute
+                            , bottom (pct (100 * n.fraction))
+                            , width (pct 100)
+                            , height
+                                (px 4)
+                            , backgroundColor c
+                            ]
+
+                        Long _ l ->
+                            [ position absolute
+                            , bottom (pct (100 * n.fraction))
+                            , width (pct 100)
+                            , height
+                                (pct <| 100 * l)
+                            , backgroundColor c
+                            ]
                 ]
                 []
     in

@@ -58,7 +58,7 @@ update msg model =
                         data =
                             Conv.fromRawData raw
                     in
-                    ( Preview data (Conv.separateByMeasure data.notes), Cmd.none )
+                    ( Preview data (Conv.separateByMeasure <| Conv.separeteLn data.notes), Cmd.none )
 
                 Err _ ->
                     Debug.todo ""

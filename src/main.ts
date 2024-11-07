@@ -13,10 +13,11 @@ app.ports.compileBMS.subscribe(async (file: { name: string; buf: string }) => {
     }
   });
   const bpm = b.chart.headers.get("bpm");
+  const lnobj = b.chart.headers.get("lnobj");
   if (bpm) {
     app.ports.loadBMS.send({
       name: file.name,
-      header: { bpm: parseFloat(bpm), waves },
+      header: { bpm: parseFloat(bpm), lnobj: lnobj ? lnobj : null, waves },
       mlens: (b.chart.timeSignatures as any)._values,
       data: b.chart.objects.all(),
     });

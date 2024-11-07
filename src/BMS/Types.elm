@@ -72,12 +72,43 @@ type alias RawData =
 
 type alias Headers =
     { bpm : Float
+    , lnobj : Maybe Int
     , waves : Dict Int String
     }
 
 
 decodeRawBMS : Decoder RawBMS
 decodeRawBMS =
+    D.map4 RawBMS
+        (D.field "name" D.string)
+        (D.field "header" decodeHeaders)
+        (D.field "mlens" <| D.map (Dict.fromList << List.map (Tuple.mapFirst (Maybe.withDefault -1 << String.toInt))) (D.keyValuePairs D.float))
+        (D.field "data" (D.map sort <| D.list decodeRawData))
+
+
+decodeHeaders : Decoder Headers
+decodeHeaders =
+    let
+        f =
+            Tuple.mapFirst <| base 36
+    in
+    D.map3 Headers
+        (D.field "bpm" D.float)
+        (D.field "lnobj" <| D.map (Maybe.map (base 36)) <| D.maybe D.string)
+        (D.field "waves" (D.map (Dict.fromList << List.map f) (D.keyValuePairs D.string)))
+
+
+decodeRawData : Decoder RawData
+decodeRawData =
+    D.map4 Object
+        (D.field "measure" D.int)
+        (D.field "fraction" D.float)
+        (D.field "value" D.string)
+        (D.field "channel" <| D.map (base 36) D.string)
+
+
+sort : List (Object x v) -> List (Object x v)
+sort =
     let
         comp a b =
             case compare a.measure b.measure of
@@ -90,26 +121,4 @@ decodeRawBMS =
                 EQ ->
                     compare a.fraction b.fraction
     in
-    D.map4 RawBMS
-        (D.field "name" D.string)
-        (D.field "header" decodeHeaders)
-        (D.field "mlens" <| D.map (Dict.fromList << List.map (Tuple.mapFirst (Maybe.withDefault -1 << String.toInt))) (D.keyValuePairs D.float))
-        (D.field "data" (D.map (List.sortWith comp) <| D.list decodeRawData))
-
-
-decodeHeaders : Decoder Headers
-decodeHeaders =
-    let
-        f =
-            Tuple.mapFirst <| base 36
-    in
-    D.map2 Headers (D.field "bpm" D.float) (D.field "waves" (D.map (Dict.fromList << List.map f) (D.keyValuePairs D.string)))
-
-
-decodeRawData : Decoder RawData
-decodeRawData =
-    D.map4 Object
-        (D.field "measure" D.int)
-        (D.field "fraction" D.float)
-        (D.field "value" D.string)
-        (D.field "channel" <| D.map (base 36) D.string)
+    List.sortWith comp

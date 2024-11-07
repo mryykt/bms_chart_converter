@@ -1,8 +1,10 @@
-module BMS.Convert exposing (fromRawData, separateByMeasure)
+module BMS.Convert exposing (fromRawData, separateByMeasure, separeteLn)
 
-import BMS.Types exposing (..)
+import BMS.Types as BMS exposing (..)
 import BMS.Utils exposing (base)
+import Dict
 import List.Extra as List
+import Maybe.Extra as Maybe
 import String.Extra as String
 
 
@@ -61,11 +63,50 @@ fromRawData { name, headers, mlens, data } =
     { chartType = chartType
     , header = headers
     , mlens = mlens
-    , notes = List.map (adjustKey chartType) notes_
+    , notes = Maybe.unwrap identity ln headers.lnobj <| List.map (adjustKey chartType) notes_
     , others = others
     }
+
+
+separeteLn : List Note -> List Note
+separeteLn =
+    let
+        f x notes =
+            case x.ext of
+                Long _ l ->
+                    g x.measure x.fraction l x notes
+
+                _ ->
+                    x :: notes
+
+        g m fr l note notes =
+            if l > 1.0 then
+                { note | measure = m, fraction = fr, ext = Long (key note.ext) (1.0 - fr) } :: g (m + 1) 0.0 (l - 1.0) note notes
+
+            else
+                { note | measure = m, fraction = fr, ext = Long (key note.ext) (l - fr) } :: notes
+    in
+    List.foldr f [] >> BMS.sort
 
 
 separateByMeasure : List (Object x v) -> List ( Int, List (Object x v) )
 separateByMeasure =
     List.groupWhile (\a b -> a.measure == b.measure) >> List.map (\( a, b ) -> ( a.measure, a :: b ))
+
+
+ln : Int -> List Note -> List Note
+ln lnobj =
+    let
+        f note ( state, notes ) =
+            if note.value == lnobj then
+                ( Dict.insert (key note.ext) { measure = note.measure, fraction = note.fraction } state, notes )
+
+            else
+                case Dict.get (key note.ext) state of
+                    Just v ->
+                        ( Dict.remove (key note.ext) state, { note | ext = Long (key note.ext) (toFloat (v.measure - note.measure) + v.fraction - note.fraction) } :: notes )
+
+                    Nothing ->
+                        ( state, note :: notes )
+    in
+    List.foldr f ( Dict.empty, [] ) >> Tuple.second
