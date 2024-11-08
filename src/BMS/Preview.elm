@@ -1,6 +1,6 @@
 module BMS.Preview exposing (view)
 
-import BMS.Types exposing (BMS, Note, NoteType(..), key)
+import BMS.Types exposing (BMS, ChartType(..), Note, NoteType(..), key)
 import Css exposing (..)
 import Dict
 import Html.Styled as Html exposing (Html)
@@ -14,7 +14,19 @@ view bms notess =
         oneMeasure ( measure, notes ) =
             let
                 lanes =
-                    fill 0 7 <| List.sortBy Tuple.first <| List.map (\( a, b ) -> ( key a.ext, a :: b )) <| gatherEqualsBy (.ext >> key) notes
+                    let
+                        ( minValue, maxValue ) =
+                            case bms.chartType of
+                                Key7 ->
+                                    ( 0, 7 )
+
+                                Key5 ->
+                                    ( 0, 5 )
+
+                                Key9 ->
+                                    ( 1, 9 )
+                    in
+                    fill minValue maxValue <| List.sortBy Tuple.first <| List.map (\( a, b ) -> ( key a.ext, a :: b )) <| gatherEqualsBy (.ext >> key) notes
             in
             Html.div
                 [ id <| "measure-" ++ String.fromInt measure
@@ -39,7 +51,7 @@ view bms notess =
                         ]
                     ]
                   <|
-                    List.map lane lanes
+                    List.map (lane bms.chartType) lanes
                 , Html.div
                     [ css
                         [ position relative
@@ -54,25 +66,52 @@ view bms notess =
     Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <| List.map oneMeasure <| fill 0 0 notess
 
 
-lane : ( Int, List Note ) -> Html msg
-lane ( k, notes ) =
+lane : ChartType -> ( Int, List Note ) -> Html msg
+lane chartType ( k, notes ) =
     let
         w =
-            if k == 0 then
-                16
+            case chartType of
+                Key9 ->
+                    if modBy 2 k == 1 then
+                        70 / 5
 
-            else
-                12
+                    else
+                        30 / 4
+
+                _ ->
+                    if k == 0 then
+                        16
+
+                    else
+                        12
 
         c =
-            if k == 0 then
-                rgb 255 0 0
+            case chartType of
+                Key9 ->
+                    if k == 1 || k == 9 then
+                        rgb 255 255 255
 
-            else if modBy 2 k == 1 then
-                rgb 255 255 255
+                    else if k == 2 || k == 8 then
+                        rgb 255 255 0
 
-            else
-                rgb 0 100 255
+                    else if k == 3 || k == 7 then
+                        rgb 0 255 0
+
+                    else if k == 4 || k == 6 then
+                        rgb 0 0 255
+
+                    else
+                        rgb 255 0 0
+
+                _ ->
+                    if k == 0 then
+                        rgb 255 0 0
+
+                    else if modBy 2 k == 1 then
+                        rgb 255 255 255
+
+                    else
+                        rgb 0 100 255
 
         note n =
             Html.div
@@ -106,8 +145,7 @@ lane ( k, notes ) =
             , border3 (px 1) solid (rgb 100 100 100)
             ]
         ]
-    <|
-        List.map note notes
+        (List.map note notes)
 
 
 {-| maxValueをあらかじめ小さくしておくことで上限を指定していないという挙動をつくりだせるクソ仕様

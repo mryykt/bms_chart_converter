@@ -12,14 +12,14 @@ fromRawData : RawBMS -> BMS
 fromRawData { name, headers, mlens, data } =
     let
         ( notes, others ) =
-            List.partition (\x -> 36 <= x.ext && x.ext <= 36 * 2) data
+            List.partition (\x -> 36 <= x.ext && x.ext < 36 * 3) data
 
         notes_ =
             List.map (\x -> { measure = x.measure, fraction = x.fraction, value = base 36 x.value, ext = toNoteType x.ext }) notes
 
         toNoteType ch =
-            if 36 <= ch && ch <= 2 * 36 then
-                Normal <| modBy 36 ch
+            if 36 <= ch && ch < 3 * 36 then
+                Normal <| ch - 36
 
             else
                 Debug.todo "other note type"
@@ -58,7 +58,38 @@ fromRawData { name, headers, mlens, data } =
                     Debug.todo ""
 
                 Key9 ->
-                    Debug.todo ""
+                    { note
+                        | ext =
+                            note.ext
+                                |> (case key note.ext of
+                                        38 ->
+                                            setKey 6
+
+                                        39 ->
+                                            setKey 7
+
+                                        40 ->
+                                            setKey 8
+
+                                        41 ->
+                                            setKey 9
+
+                                        8 ->
+                                            setKey 6
+
+                                        9 ->
+                                            setKey 7
+
+                                        6 ->
+                                            setKey 8
+
+                                        7 ->
+                                            setKey 9
+
+                                        _ ->
+                                            identity
+                                   )
+                    }
     in
     { chartType = chartType
     , header = headers
