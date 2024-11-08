@@ -34,62 +34,6 @@ fromRawData { name, headers, mlens, data } =
 
             else
                 Key5
-
-        adjustKey ct note =
-            case ct of
-                Key7 ->
-                    { note
-                        | ext =
-                            case key note.ext of
-                                6 ->
-                                    setKey 0 note.ext
-
-                                8 ->
-                                    setKey 6 note.ext
-
-                                9 ->
-                                    setKey 7 note.ext
-
-                                _ ->
-                                    note.ext
-                    }
-
-                Key5 ->
-                    Debug.todo ""
-
-                Key9 ->
-                    { note
-                        | ext =
-                            note.ext
-                                |> (case key note.ext of
-                                        38 ->
-                                            setKey 6
-
-                                        39 ->
-                                            setKey 7
-
-                                        40 ->
-                                            setKey 8
-
-                                        41 ->
-                                            setKey 9
-
-                                        8 ->
-                                            setKey 6
-
-                                        9 ->
-                                            setKey 7
-
-                                        6 ->
-                                            setKey 8
-
-                                        7 ->
-                                            setKey 9
-
-                                        _ ->
-                                            identity
-                                   )
-                    }
     in
     { chartType = chartType
     , header = headers
@@ -97,6 +41,66 @@ fromRawData { name, headers, mlens, data } =
     , notes = Maybe.unwrap identity ln headers.lnobj <| List.map (adjustKey chartType) notes_
     , others = others
     }
+
+
+adjustKey : ChartType -> Note -> Note
+adjustKey ct note =
+    case ct of
+        Key7 ->
+            { note
+                | ext =
+                    note.ext
+                        |> (case key note.ext of
+                                6 ->
+                                    setKey 0
+
+                                8 ->
+                                    setKey 6
+
+                                9 ->
+                                    setKey 7
+
+                                _ ->
+                                    identity
+                           )
+            }
+
+        Key5 ->
+            Debug.todo ""
+
+        Key9 ->
+            { note
+                | ext =
+                    note.ext
+                        |> (case key note.ext of
+                                38 ->
+                                    setKey 6
+
+                                39 ->
+                                    setKey 7
+
+                                40 ->
+                                    setKey 8
+
+                                41 ->
+                                    setKey 9
+
+                                8 ->
+                                    setKey 6
+
+                                9 ->
+                                    setKey 7
+
+                                6 ->
+                                    setKey 8
+
+                                7 ->
+                                    setKey 9
+
+                                _ ->
+                                    identity
+                           )
+            }
 
 
 separeteLn : List Note -> List Note
