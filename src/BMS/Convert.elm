@@ -45,72 +45,67 @@ fromRawData { name, headers, mlens, data } =
 
 adjustKey : ChartType -> Note -> Note
 adjustKey ct note =
-    case ct of
-        Key7 ->
-            { note
-                | ext =
-                    note.ext
-                        |> (case key note.ext of
-                                6 ->
-                                    setKey 0
+    let
+        ext =
+            case ct of
+                Key7 ->
+                    (case key note.ext of
+                        6 ->
+                            setKey 0
 
-                                8 ->
-                                    setKey 6
+                        8 ->
+                            setKey 6
 
-                                9 ->
-                                    setKey 7
+                        9 ->
+                            setKey 7
 
-                                _ ->
-                                    identity
-                           )
-            }
+                        _ ->
+                            identity
+                    )
+                        note.ext
 
-        Key5 ->
-            { note
-                | ext =
-                    note.ext
-                        |> (case key note.ext of
-                                6 ->
-                                    setKey 0
+                Key5 ->
+                    (case key note.ext of
+                        6 ->
+                            setKey 0
 
-                                _ ->
-                                    identity
-                           )
-            }
+                        _ ->
+                            identity
+                    )
+                        note.ext
 
-        Key9 ->
-            { note
-                | ext =
-                    note.ext
-                        |> (case key note.ext of
-                                38 ->
-                                    setKey 6
+                Key9 ->
+                    (case key note.ext of
+                        38 ->
+                            setKey 6
 
-                                39 ->
-                                    setKey 7
+                        39 ->
+                            setKey 7
 
-                                40 ->
-                                    setKey 8
+                        40 ->
+                            setKey 8
 
-                                41 ->
-                                    setKey 9
+                        41 ->
+                            setKey 9
 
-                                8 ->
-                                    setKey 6
+                        8 ->
+                            setKey 6
 
-                                9 ->
-                                    setKey 7
+                        9 ->
+                            setKey 7
 
-                                6 ->
-                                    setKey 8
+                        6 ->
+                            setKey 8
 
-                                7 ->
-                                    setKey 9
+                        7 ->
+                            setKey 9
 
-                                _ ->
-                                    identity
-                           )
-            }
+                        _ ->
+                            identity
+                    )
+                        note.ext
+    in
+    { note | ext = ext }
 
 
 separeteLn : List Note -> List Note
