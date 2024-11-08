@@ -2,10 +2,8 @@
   "name": "bms_chart",
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
-    "test": "elm-test",
-    "build": "tsc && vite build",
-    "serve": "vite preview"
+    "dev": "parcel index.html",
+    "test": "elm-test"
   },
   "devDependencies": {
     "elm": "^0.19.1-5",
