@@ -33,7 +33,15 @@ view bms notess =
                 , css
                     [ position relative
                     , height (pct <| 20 * (Maybe.withDefault 1.0 <| Dict.get measure bms.mlens))
-                    , width (pct 15)
+                    , width
+                        (pct
+                            (if bms.chartType == Key5 then
+                                10
+
+                             else
+                                15
+                            )
+                        )
                     , minWidth (px 150)
                     , padding2 zero (px 5)
                     , border3 (px 1) solid (rgb 255 255 255)
@@ -72,18 +80,21 @@ lane chartType ( k, notes ) =
         w =
             case chartType of
                 Key9 ->
-                    if modBy 2 k == 1 then
-                        70 / 5
+                    100 / 9
 
-                    else
-                        30 / 4
-
-                _ ->
+                Key7 ->
                     if k == 0 then
                         16
 
                     else
                         12
+
+                Key5 ->
+                    if k == 0 then
+                        20
+
+                    else
+                        15
 
         c =
             case chartType of
@@ -104,6 +115,7 @@ lane chartType ( k, notes ) =
                         rgb 255 0 0
 
                 _ ->
+                    -- 7key, 5key
                     if k == 0 then
                         rgb 255 0 0
 
