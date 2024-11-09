@@ -21,23 +21,44 @@ view bms notess =
 oneMeasure : BMS -> ( Int, List Note ) -> Html msg
 oneMeasure bms ( measure, notes ) =
     let
-        lanes =
+        onePSide pSide notesPSide =
             let
-                ( minValue, maxValue ) =
-                    case bms.chartType of
-                        Key7 ->
-                            ( 0, 7 )
+                lanes =
+                    let
+                        ( minValue, maxValue ) =
+                            case bms.chartType of
+                                Key7 ->
+                                    ( 0, 7 )
 
-                        Key5 ->
-                            ( 0, 5 )
+                                Key5 ->
+                                    ( 0, 5 )
 
-                        Key9 ->
-                            ( 1, 9 )
+                                Key9 ->
+                                    ( 1, 9 )
 
-                        Key14 ->
-                            Debug.todo ""
+                                Key14 ->
+                                    ( 0, 7 )
+                    in
+                    (if pSide == Right then
+                        rightScratch
+
+                     else
+                        identity
+                    )
+                    <|
+                        fill minValue maxValue <| List.sortBy Tuple.first <| List.map (\( a, b ) -> ( key a.ext, a :: b )) <| gatherEqualsBy (.ext >> key) notesPSide
             in
-            fill minValue maxValue <| List.sortBy Tuple.first <| List.map (\( a, b ) -> ( key a.ext, a :: b )) <| gatherEqualsBy (.ext >> key) notes
+            Html.div
+                [ css
+                    [ position relative
+                    , width (pct 80)
+                    , height (pct 100)
+                    , backgroundColor (rgb 50 50 50)
+                    , displayFlex
+                    ]
+                ]
+            <|
+                List.map (lane pSide bms.chartType) lanes
     in
     Html.div
         [ id <| "measure-" ++ String.fromInt measure
@@ -45,46 +66,69 @@ oneMeasure bms ( measure, notes ) =
             [ position relative
             , height (pct <| 20 * (Maybe.withDefault 1.0 <| Dict.get measure bms.mlens))
             , width
-                (pct
-                    (if bms.chartType == Key5 then
+                (pct <|
+                    if bms.chartType == Key5 then
                         10
 
-                     else
+                    else if bms.chartType == Key14 then
+                        25
+
+                    else
                         15
-                    )
                 )
-            , minWidth (px 150)
+            , minWidth
+                (px <|
+                    if bms.chartType == Key5 then
+                        150
+
+                    else if bms.chartType == Key14 then
+                        300
+
+                    else
+                        220
+                )
             , padding2 zero (px 5)
             , border3 (px 1) solid (rgb 255 255 255)
             , displayFlex
             , flexDirection row
             ]
         ]
-        [ Html.div
-            [ css
-                [ position relative
-                , width (pct 80)
-                , height (pct 100)
-                , backgroundColor (rgb 50 50 50)
-                , displayFlex
+    <|
+        (if bms.chartType == Key14 then
+            let
+                ( left, right ) =
+                    separateForDP notes
+            in
+            [ onePSide Left left
+            , Html.div
+                [ css
+                    [ position relative
+                    , width (pct 10)
+                    , height (pct 100)
+                    , backgroundColor (rgb 100 100 100)
+                    ]
                 ]
+                []
+            , onePSide Right right
             ]
-          <|
-            List.map (lane Left bms.chartType) lanes
-        , Html.div
-            [ css
-                [ position relative
-                , width (pct 20)
-                , height (pct 100)
-                , backgroundColor (rgb 200 200 200)
-                ]
-            ]
-            [ Html.text <| String.fromInt measure ]
-        ]
+
+         else
+            [ onePSide Left notes ]
+        )
+            ++ [ Html.div
+                    [ css
+                        [ position relative
+                        , width (pct 20)
+                        , height (pct 100)
+                        , backgroundColor (rgb 200 200 200)
+                        ]
+                    ]
+                    [ Html.text <| String.fromInt measure ]
+               ]
 
 
 lane : PSide -> ChartType -> ( Int, List Note ) -> Html msg
-lane pside chartType ( k, notes ) =
+lane pSide chartType ( k, notes ) =
     let
         w =
             case chartType of
@@ -106,7 +150,11 @@ lane pside chartType ( k, notes ) =
                         15
 
                 Key14 ->
-                    Debug.todo ""
+                    if k == 0 then
+                        16
+
+                    else
+                        12
 
         c =
             case chartType of
@@ -165,7 +213,7 @@ lane pside chartType ( k, notes ) =
         [ css
             [ position relative
             , width (pct w)
-            , whenStyle (pside == Right && k == 0) <| right (px 0)
+            , whenStyle (pSide == Right && k == 0) <| float right
             , height (pct 100)
             , border3 (px 1) solid (rgb 100 100 100)
             ]
@@ -185,6 +233,22 @@ whenStyle cond style =
 separateForDP : List Note -> ( List Note, List Note )
 separateForDP =
     List.partition ((>) 36 << key << .ext) >> Tuple.mapSecond (List.map (\n -> { n | ext = setKey (key n.ext - 36) n.ext }))
+
+
+rightScratch : List ( Int, List Note ) -> List ( Int, List Note )
+rightScratch =
+    let
+        f ( i1, _ ) ( i2, _ ) =
+            if i1 == 0 then
+                GT
+
+            else if i2 == 0 then
+                LT
+
+            else
+                compare i1 i2
+    in
+    List.sortWith f
 
 
 {-| maxValueをあらかじめ小さくしておくことで上限を指定していないという挙動をつくりだせるクソ仕様

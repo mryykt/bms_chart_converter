@@ -116,7 +116,29 @@ adjustKey ct note =
                         note.ext
 
                 Key14 ->
-                    Debug.todo ""
+                    (case key note.ext of
+                        6 ->
+                            setKey 0
+
+                        8 ->
+                            setKey 6
+
+                        9 ->
+                            setKey 7
+
+                        42 ->
+                            setKey 36
+
+                        44 ->
+                            setKey 42
+
+                        45 ->
+                            setKey 43
+
+                        _ ->
+                            identity
+                    )
+                        note.ext
     in
     { note | ext = ext }
 
