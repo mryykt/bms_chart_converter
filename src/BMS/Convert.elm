@@ -25,11 +25,21 @@ fromRawData { name, headers, mlens, data } =
                 Debug.todo "other note type"
 
         chartType =
-            if String.rightOfBack "." name == "pms" then
+            let
+                maxKey =
+                    Maybe.withDefault 0 <| List.maximum <| List.map (key << .ext) notes_
+
+                extension =
+                    String.rightOfBack "." name
+            in
+            if extension == "pms" then
                 Key9
                 -- とりあえず，5keyのフリーゾーンを無視する
 
-            else if List.any ((<=) 7 << key << .ext) notes_ || String.rightOfBack "." name == "bme" then
+            else if maxKey >= 36 + 7 || maxKey >= 36 && extension == "bme" then
+                Key14
+
+            else if maxKey >= 7 || extension == "bme" then
                 Key7
 
             else
@@ -104,6 +114,9 @@ adjustKey ct note =
                             identity
                     )
                         note.ext
+
+                Key14 ->
+                    Debug.todo ""
     in
     { note | ext = ext }
 

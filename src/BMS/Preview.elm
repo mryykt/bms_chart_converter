@@ -1,11 +1,16 @@
 module BMS.Preview exposing (view)
 
-import BMS.Types exposing (BMS, ChartType(..), Note, NoteType(..), key)
+import BMS.Types exposing (BMS, ChartType(..), Note, NoteType(..), key, setKey)
 import Css exposing (..)
 import Dict
 import Html.Styled as Html exposing (Html)
+import Html.Styled.Attributes exposing (css, id)
 import List.Extra exposing (gatherEqualsBy)
-import Svg.Styled.Attributes exposing (css, id)
+
+
+type PSide
+    = Left
+    | Right
 
 
 view : BMS -> List ( Int, List Note ) -> Html msg
@@ -25,6 +30,9 @@ view bms notess =
 
                                 Key9 ->
                                     ( 1, 9 )
+
+                                Key14 ->
+                                    Debug.todo ""
                     in
                     fill minValue maxValue <| List.sortBy Tuple.first <| List.map (\( a, b ) -> ( key a.ext, a :: b )) <| gatherEqualsBy (.ext >> key) notes
             in
@@ -59,7 +67,7 @@ view bms notess =
                         ]
                     ]
                   <|
-                    List.map (lane bms.chartType) lanes
+                    List.map (lane Left bms.chartType) lanes
                 , Html.div
                     [ css
                         [ position relative
@@ -74,8 +82,8 @@ view bms notess =
     Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <| List.map oneMeasure <| fill 0 0 notess
 
 
-lane : ChartType -> ( Int, List Note ) -> Html msg
-lane chartType ( k, notes ) =
+lane : PSide -> ChartType -> ( Int, List Note ) -> Html msg
+lane pside chartType ( k, notes ) =
     let
         w =
             case chartType of
@@ -95,6 +103,9 @@ lane chartType ( k, notes ) =
 
                     else
                         15
+
+                Key14 ->
+                    Debug.todo ""
 
         c =
             case chartType of
@@ -153,11 +164,26 @@ lane chartType ( k, notes ) =
         [ css
             [ position relative
             , width (pct w)
+            , whenStyle (pside == Right && k == 0) <| right (px 0)
             , height (pct 100)
             , border3 (px 1) solid (rgb 100 100 100)
             ]
         ]
         (List.map note notes)
+
+
+whenStyle : Bool -> Style -> Style
+whenStyle cond style =
+    if cond then
+        style
+
+    else
+        batch []
+
+
+separateForDP : List Note -> ( List Note, List Note )
+separateForDP =
+    List.partition ((>) 36 << key << .ext) >> Tuple.mapSecond (List.map (\n -> { n | ext = setKey (key n.ext - 36) n.ext }))
 
 
 {-| maxValueをあらかじめ小さくしておくことで上限を指定していないという挙動をつくりだせるクソ仕様
