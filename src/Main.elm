@@ -9,6 +9,7 @@ import File.Select as Select
 import Html.Styled as Html exposing (Html, button, div, text)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick)
+import Html.Styled.Lazy exposing (lazy2)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
 import Task
@@ -81,7 +82,7 @@ view model =
                 ]
 
         Preview bms sep ->
-            Preview.view bms sep
+            lazy2 Preview.view bms sep
 
 
 main : Program () Model Msg
