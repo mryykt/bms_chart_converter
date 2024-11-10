@@ -56,12 +56,7 @@ oneMeasure bms ( measure, notes ) =
             in
             Html.div
                 [ css
-                    [ position relative
-                    , width (pct 80)
-                    , height (pct 100)
-                    , backgroundColor (rgb 50 50 50)
-                    , displayFlex
-                    ]
+                    [ position relative, width (pct 80), height (pct 100), backgroundColor (rgb 50 50 50), displayFlex ]
                 ]
             <|
                 List.map (lane pSide bms.chartType) lanes
@@ -116,11 +111,7 @@ oneMeasure bms ( measure, notes ) =
             [ onePSide Left left
             , Html.div
                 [ css
-                    [ position relative
-                    , width (pct 10)
-                    , height (pct 100)
-                    , backgroundColor (rgb 100 100 100)
-                    ]
+                    [ position relative, width (pct 10), height (pct 100), backgroundColor (rgb 100 100 100) ]
                 ]
                 []
             , onePSide Right right
@@ -131,11 +122,7 @@ oneMeasure bms ( measure, notes ) =
         )
             ++ [ Html.div
                     [ css
-                        [ position relative
-                        , width (pct 20)
-                        , height (pct 100)
-                        , backgroundColor (rgb 200 200 200)
-                        ]
+                        [ position relative, width (pct 20), height (pct 100), backgroundColor (rgb 200 200 200) ]
                     ]
                     [ Html.text <| String.fromInt measure ]
                ]
@@ -214,8 +201,7 @@ lane pSide chartType ( k, notes ) =
                             [ position absolute
                             , bottom (pct (100 * n.fraction))
                             , width (pct 100)
-                            , height
-                                (px 4)
+                            , height (px 4)
                             , backgroundColor c
                             ]
 
@@ -223,8 +209,7 @@ lane pSide chartType ( k, notes ) =
                             [ position absolute
                             , bottom (pct (100 * n.fraction))
                             , width (pct 100)
-                            , height
-                                (pct <| 100 * l)
+                            , height (pct <| 100 * l)
                             , backgroundColor c
                             ]
                 ]
