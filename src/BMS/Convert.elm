@@ -39,6 +39,9 @@ fromRawData { name, headers, mlens, data } =
             else if maxKey >= 36 + 7 || maxKey >= 36 && extension == "bme" then
                 Key14
 
+            else if maxKey >= 36 then
+                Key10
+
             else if maxKey >= 7 || extension == "bme" then
                 Key7
 
@@ -134,6 +137,19 @@ adjustKey ct note =
 
                         45 ->
                             setKey 43
+
+                        _ ->
+                            identity
+                    )
+                        note.ext
+
+                Key10 ->
+                    (case key note.ext of
+                        6 ->
+                            setKey 0
+
+                        42 ->
+                            setKey 36
 
                         _ ->
                             identity

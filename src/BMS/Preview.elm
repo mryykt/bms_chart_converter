@@ -38,6 +38,9 @@ oneMeasure bms ( measure, notes ) =
 
                                 Key14 ->
                                     ( 0, 7 )
+
+                                Key10 ->
+                                    ( 0, 5 )
                     in
                     (if pSide == Right then
                         rightScratch
@@ -46,7 +49,10 @@ oneMeasure bms ( measure, notes ) =
                         identity
                     )
                     <|
-                        fill minValue maxValue <| List.sortBy Tuple.first <| List.map (\( a, b ) -> ( key a.ext, a :: b )) <| gatherEqualsBy (.ext >> key) notesPSide
+                        fill minValue maxValue <|
+                            List.sortBy Tuple.first <|
+                                List.map (\( a, b ) -> ( key a.ext, a :: b )) <|
+                                    gatherEqualsBy (.ext >> key) notesPSide
             in
             Html.div
                 [ css
@@ -73,6 +79,9 @@ oneMeasure bms ( measure, notes ) =
                     else if bms.chartType == Key14 then
                         25
 
+                    else if bms.chartType == Key10 then
+                        20
+
                     else
                         15
                 )
@@ -94,7 +103,7 @@ oneMeasure bms ( measure, notes ) =
             ]
         ]
     <|
-        (if bms.chartType == Key14 then
+        (if bms.chartType == Key14 || bms.chartType == Key10 then
             let
                 ( left, right ) =
                     separateForDP notes
@@ -156,6 +165,13 @@ lane pSide chartType ( k, notes ) =
                     else
                         12
 
+                Key10 ->
+                    if k == 0 then
+                        20
+
+                    else
+                        15
+
         c =
             case chartType of
                 Key9 ->
@@ -175,7 +191,7 @@ lane pSide chartType ( k, notes ) =
                         rgb 255 0 0
 
                 _ ->
-                    -- 7key, 5key
+                    -- 7key, 5key, 14key, 10key
                     if k == 0 then
                         rgb 255 0 0
 

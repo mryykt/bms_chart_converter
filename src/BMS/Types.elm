@@ -20,6 +20,7 @@ type ChartType
     | Key5
     | Key9
     | Key14
+    | Key10
 
 
 type alias Object x v =
