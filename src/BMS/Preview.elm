@@ -73,28 +73,33 @@ oneMeasure bms ( measure, notes ) =
             , height (pct <| 20 * (Maybe.withDefault 1.0 <| Dict.get measure bms.mlens))
             , width
                 (pct <|
-                    if bms.chartType == Key5 then
-                        10
+                    case bms.chartType of
+                        Key5 ->
+                            10
 
-                    else if bms.chartType == Key14 then
-                        25
+                        Key14 ->
+                            25
 
-                    else if bms.chartType == Key10 then
-                        20
+                        Key10 ->
+                            20
 
-                    else
-                        15
+                        _ ->
+                            15
                 )
             , minWidth
                 (px <|
-                    if bms.chartType == Key5 then
-                        150
+                    case bms.chartType of
+                        Key5 ->
+                            150
 
-                    else if bms.chartType == Key14 then
-                        300
+                        Key14 ->
+                            300
 
-                    else
-                        220
+                        Key10 ->
+                            260
+
+                        _ ->
+                            220
                 )
             , padding2 zero (px 5)
             , border3 (px 1) solid (rgb 255 255 255)
