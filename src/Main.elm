@@ -1,8 +1,8 @@
 port module Main exposing (..)
 
-import BMS.Convert as Conv
-import BMS.Preview as Preview
-import BMS.Types exposing (BMS, Note, RawBMS, decodeRawBMS)
+import Bms.Convert as Conv
+import Bms.Preview as Preview
+import Bms.Types exposing (BMS, Note, RawBMS, decodeRawBMS)
 import Browser
 import File exposing (File)
 import File.Select as Select

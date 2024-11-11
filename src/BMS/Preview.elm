@@ -1,6 +1,6 @@
-module BMS.Preview exposing (view)
+module Bms.Preview exposing (view)
 
-import BMS.Types exposing (BMS, ChartType(..), Note, NoteType(..), key, setKey)
+import Bms.Types exposing (BMS, ChartType(..), Note, NoteType(..), key, setKey)
 import Css exposing (..)
 import Dict
 import Html.Styled as Html exposing (Html)

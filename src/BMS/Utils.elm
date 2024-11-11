@@ -1,4 +1,4 @@
-module BMS.Utils exposing (..)
+module Bms.Utils exposing (..)
 
 
 base : Int -> String -> Int

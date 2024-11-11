@@ -1,6 +1,6 @@
-module BMS.Types exposing (..)
+module Bms.Types exposing (..)
 
-import BMS.Utils exposing (base)
+import Bms.Utils exposing (base)
 import Dict exposing (Dict)
 import Json.Decode as D exposing (Decoder)
 import Tuple

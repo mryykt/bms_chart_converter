@@ -1,7 +1,7 @@
-module BMS.Convert exposing (fromRawData, separateByMeasure, separeteLn)
+module Bms.Convert exposing (fromRawData, separateByMeasure, separeteLn)
 
-import BMS.Types as BMS exposing (..)
-import BMS.Utils exposing (base)
+import Bms.Types as Bms exposing (BMS, ChartType(..), Note, NoteType(..), Object, RawBMS)
+import Bms.Utils exposing (base)
 import Dict
 import List.Extra as List
 import Maybe.Extra as Maybe
@@ -30,7 +30,7 @@ fromRawData { name, headers, mlens, data } =
         chartType =
             let
                 maxKey =
-                    Maybe.withDefault 0 <| List.maximum <| List.map (key << .ext) notes_
+                    Maybe.withDefault 0 <| List.maximum <| List.map (Bms.key << .ext) notes_
 
                 extension =
                     String.rightOfBack "." name
@@ -65,15 +65,15 @@ adjustKey ct note =
         ext =
             case ct of
                 Key7 ->
-                    (case key note.ext of
+                    (case Bms.key note.ext of
                         6 ->
-                            setKey 0
+                            Bms.setKey 0
 
                         8 ->
-                            setKey 6
+                            Bms.setKey 6
 
                         9 ->
-                            setKey 7
+                            Bms.setKey 7
 
                         _ ->
                             identity
@@ -81,9 +81,9 @@ adjustKey ct note =
                         note.ext
 
                 Key5 ->
-                    (case key note.ext of
+                    (case Bms.key note.ext of
                         6 ->
-                            setKey 0
+                            Bms.setKey 0
 
                         _ ->
                             identity
@@ -91,30 +91,30 @@ adjustKey ct note =
                         note.ext
 
                 Key9 ->
-                    (case key note.ext of
+                    (case Bms.key note.ext of
                         38 ->
-                            setKey 6
+                            Bms.setKey 6
 
                         39 ->
-                            setKey 7
+                            Bms.setKey 7
 
                         40 ->
-                            setKey 8
+                            Bms.setKey 8
 
                         41 ->
-                            setKey 9
+                            Bms.setKey 9
 
                         8 ->
-                            setKey 6
+                            Bms.setKey 6
 
                         9 ->
-                            setKey 7
+                            Bms.setKey 7
 
                         6 ->
-                            setKey 8
+                            Bms.setKey 8
 
                         7 ->
-                            setKey 9
+                            Bms.setKey 9
 
                         _ ->
                             identity
@@ -122,24 +122,24 @@ adjustKey ct note =
                         note.ext
 
                 Key14 ->
-                    (case key note.ext of
+                    (case Bms.key note.ext of
                         6 ->
-                            setKey 0
+                            Bms.setKey 0
 
                         8 ->
-                            setKey 6
+                            Bms.setKey 6
 
                         9 ->
-                            setKey 7
+                            Bms.setKey 7
 
                         42 ->
-                            setKey 36
+                            Bms.setKey 36
 
                         44 ->
-                            setKey 42
+                            Bms.setKey 42
 
                         45 ->
-                            setKey 43
+                            Bms.setKey 43
 
                         _ ->
                             identity
@@ -147,12 +147,12 @@ adjustKey ct note =
                         note.ext
 
                 Key10 ->
-                    (case key note.ext of
+                    (case Bms.key note.ext of
                         6 ->
-                            setKey 0
+                            Bms.setKey 0
 
                         42 ->
-                            setKey 36
+                            Bms.setKey 36
 
                         _ ->
                             identity
@@ -175,12 +175,12 @@ separeteLn =
 
         g m fr l note notes =
             if l > 1.0 then
-                { note | measure = m, fraction = fr, ext = Long (key note.ext) (1.0 - fr) } :: g (m + 1) 0.0 (l - 1.0) note notes
+                { note | measure = m, fraction = fr, ext = Long (Bms.key note.ext) (1.0 - fr) } :: g (m + 1) 0.0 (l - 1.0) note notes
 
             else
-                { note | measure = m, fraction = fr, ext = Long (key note.ext) (l - fr) } :: notes
+                { note | measure = m, fraction = fr, ext = Long (Bms.key note.ext) (l - fr) } :: notes
     in
-    List.foldr f [] >> BMS.sort
+    List.foldr f [] >> Bms.sort
 
 
 separateByMeasure : List (Object x v) -> List ( Int, List (Object x v) )
@@ -216,12 +216,12 @@ ln2 lnobj =
     let
         f note ( state, notes ) =
             if note.value == lnobj then
-                ( Dict.insert (key note.ext) { measure = note.measure, fraction = note.fraction } state, notes )
+                ( Dict.insert (Bms.key note.ext) { measure = note.measure, fraction = note.fraction } state, notes )
 
             else
-                case Dict.get (key note.ext) state of
+                case Dict.get (Bms.key note.ext) state of
                     Just v ->
-                        ( Dict.remove (key note.ext) state, { note | ext = Long (key note.ext) (toFloat (v.measure - note.measure) + v.fraction - note.fraction) } :: notes )
+                        ( Dict.remove (Bms.key note.ext) state, { note | ext = Long (Bms.key note.ext) (toFloat (v.measure - note.measure) + v.fraction - note.fraction) } :: notes )
 
                     Nothing ->
                         ( state, note :: notes )
