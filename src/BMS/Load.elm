@@ -1,4 +1,4 @@
-module Bms.Convert exposing (fromRawData, separateByMeasure, separeteLn)
+module Bms.Load exposing (fromRawData, separateByMeasure, separeteLn)
 
 import Bms.Types as Bms exposing (BMS, ChartType(..), Note, NoteType(..), Object, RawBMS)
 import Bms.Utils exposing (base)

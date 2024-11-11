@@ -1,6 +1,6 @@
 port module Main exposing (..)
 
-import Bms.Convert as Conv
+import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Types exposing (BMS, Note, RawBMS, decodeRawBMS)
 import Browser
@@ -57,9 +57,9 @@ update msg model =
                 Ok raw ->
                     let
                         data =
-                            Conv.fromRawData raw
+                            Load.fromRawData raw
                     in
-                    ( Preview data (Conv.separateByMeasure <| Conv.separeteLn data.notes), Cmd.none )
+                    ( Preview data (Load.separateByMeasure <| Load.separeteLn data.notes), Cmd.none )
 
                 Err _ ->
                     Debug.todo ""
