@@ -1,6 +1,6 @@
 module Bms.Preview exposing (view)
 
-import Bms.Types exposing (BMS, ChartType(..), Note, NoteType(..), key, setKey)
+import Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), key, setKey)
 import Css exposing (..)
 import Dict
 import Html.Styled as Html exposing (Html)
@@ -13,12 +13,12 @@ type PSide
     | Right
 
 
-view : BMS -> List ( Int, List Note ) -> Html msg
+view : Bms -> List ( Int, List Note ) -> Html msg
 view bms notess =
     Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <| List.map (oneMeasure bms) <| fill 0 0 notess
 
 
-oneMeasure : BMS -> ( Int, List Note ) -> Html msg
+oneMeasure : Bms -> ( Int, List Note ) -> Html msg
 oneMeasure bms ( measure, notes ) =
     let
         onePSide pSide notesPSide =

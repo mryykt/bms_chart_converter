@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Bms.Load as Load
 import Bms.Preview as Preview
-import Bms.Types exposing (BMS, Note, RawBMS, decodeRawBMS)
+import Bms.Types exposing (Bms, Note, RawBms, decodeRawBms)
 import Browser
 import File exposing (File)
 import File.Select as Select
@@ -23,7 +23,7 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 type Model
     = Init (Maybe String)
-    | Preview BMS (List ( Int, List Note ))
+    | Preview Bms (List ( Int, List Note ))
 
 
 init : () -> ( Model, Cmd Msg )
@@ -37,7 +37,7 @@ type Msg
     = FileRequested
     | FileSelected File
     | FileLoaded String
-    | LoadBMS (Result Error RawBMS)
+    | LoadBMS (Result Error RawBms)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -70,7 +70,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    loadBMS (LoadBMS << decodeValue decodeRawBMS)
+    loadBMS (LoadBMS << decodeValue decodeRawBms)
 
 
 view : Model -> Html Msg

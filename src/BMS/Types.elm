@@ -6,7 +6,7 @@ import Json.Decode as D exposing (Decoder)
 import Tuple
 
 
-type alias BMS =
+type alias Bms =
     { chartType : ChartType
     , header : Headers
     , mlens : Dict Int Float
@@ -60,7 +60,7 @@ setKey k nt =
             Long k l
 
 
-type alias RawBMS =
+type alias RawBms =
     { name : String
     , headers : Headers
     , mlens : Dict Int Float
@@ -79,9 +79,9 @@ type alias Headers =
     }
 
 
-decodeRawBMS : Decoder RawBMS
-decodeRawBMS =
-    D.map4 RawBMS
+decodeRawBms : Decoder RawBms
+decodeRawBms =
+    D.map4 RawBms
         (D.field "name" D.string)
         (D.field "header" decodeHeaders)
         (D.field "mlens" <| D.map (Dict.fromList << List.map (Tuple.mapFirst (Maybe.withDefault -1 << String.toInt))) (D.keyValuePairs D.float))

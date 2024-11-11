@@ -1,6 +1,6 @@
 module Bms.Load exposing (fromRawData, separateByMeasure, separeteLn)
 
-import Bms.Types as Bms exposing (BMS, ChartType(..), Note, NoteType(..), Object, RawBMS)
+import Bms.Types as Bms exposing (Bms, ChartType(..), Note, NoteType(..), Object, RawBms)
 import Bms.Utils exposing (base)
 import Dict
 import List.Extra as List
@@ -8,7 +8,7 @@ import Maybe.Extra as Maybe
 import String.Extra as String
 
 
-fromRawData : RawBMS -> BMS
+fromRawData : RawBms -> Bms
 fromRawData { name, headers, mlens, data } =
     let
         ( notes, others ) =
