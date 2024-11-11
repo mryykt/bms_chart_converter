@@ -12,7 +12,7 @@ fromRawData : RawBMS -> BMS
 fromRawData { name, headers, mlens, data } =
     let
         ( notes, others ) =
-            List.partition (\x -> 36 <= x.ext && x.ext < 36 * 3) data
+            List.partition (\x -> 36 <= x.ext && x.ext < 36 * 3 || 5 * 36 <= x.ext && x.ext < 7 * 36) data
 
         notes_ =
             List.map (\x -> { measure = x.measure, fraction = x.fraction, value = base 36 x.value, ext = toNoteType x.ext }) notes
@@ -20,6 +20,9 @@ fromRawData { name, headers, mlens, data } =
         toNoteType ch =
             if 36 <= ch && ch < 3 * 36 then
                 Normal <| ch - 36
+
+            else if 5 * 36 <= ch && ch < 7 * 36 then
+                Long (ch - 5 * 36) 0
 
             else
                 Debug.todo "other note type"
@@ -51,7 +54,7 @@ fromRawData { name, headers, mlens, data } =
     { chartType = chartType
     , header = headers
     , mlens = mlens
-    , notes = Maybe.unwrap identity ln headers.lnobj <| List.map (adjustKey chartType) notes_
+    , notes = Maybe.unwrap identity ln2 headers.lnobj <| ln1 <| List.map (adjustKey chartType) notes_
     , others = others
     }
 
@@ -185,8 +188,31 @@ separateByMeasure =
     List.groupWhile (\a b -> a.measure == b.measure) >> List.map (\( a, b ) -> ( a.measure, a :: b ))
 
 
-ln : Int -> List Note -> List Note
-ln lnobj =
+ln1 : List Note -> List Note
+ln1 =
+    let
+        f note ( state, notes ) =
+            case note.ext of
+                Long k l ->
+                    if l == 0 then
+                        case Dict.get k state of
+                            Just v ->
+                                ( Dict.remove k state, { note | ext = Long k (toFloat (v.measure - note.measure) + v.fraction - note.fraction) } :: notes )
+
+                            Nothing ->
+                                ( Dict.insert k { measure = note.measure, fraction = note.fraction } state, note :: notes )
+
+                    else
+                        ( state, note :: notes )
+
+                _ ->
+                    ( state, note :: notes )
+    in
+    List.foldr f ( Dict.empty, [] ) >> Tuple.second
+
+
+ln2 : Int -> List Note -> List Note
+ln2 lnobj =
     let
         f note ( state, notes ) =
             if note.value == lnobj then
