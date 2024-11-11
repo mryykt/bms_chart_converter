@@ -53,6 +53,9 @@ oneMeasure bms ( measure, notes ) =
                             List.sortBy Tuple.first <|
                                 List.map (\( a, b ) -> ( key a.ext, a :: b )) <|
                                     gatherEqualsBy (.ext >> key) notesPSide
+
+                quarter n =
+                    Html.div [ css [ position absolute, width (pct 100), top (pct <| n * 25), border3 (px 0.5) solid (rgb 70 70 70) ] ] []
             in
             Html.div
                 [ css
@@ -60,6 +63,7 @@ oneMeasure bms ( measure, notes ) =
                 ]
             <|
                 List.map (lane pSide bms.chartType) lanes
+                    ++ [ quarter 1, quarter 2, quarter 3 ]
     in
     Html.div
         [ id <| "measure-" ++ String.fromInt measure
@@ -202,6 +206,7 @@ lane pSide chartType ( k, notes ) =
                             , bottom (pct (100 * n.fraction))
                             , width (pct 100)
                             , height (px 4)
+                            , zIndex (int 100)
                             , backgroundColor c
                             ]
 
@@ -210,6 +215,7 @@ lane pSide chartType ( k, notes ) =
                             , bottom (pct (100 * n.fraction))
                             , width (pct 100)
                             , height (pct <| 100 * l)
+                            , zIndex (int 100)
                             , backgroundColor c
                             ]
                 ]
