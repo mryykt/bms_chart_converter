@@ -1,7 +1,7 @@
 module Bms.Converter exposing (convert, groupingNotes)
 
 import Basics.Extra exposing (..)
-import Bms.Types exposing (Bms, ChartType, Note)
+import Bms.Types exposing (Bms, ChartType, Note, key)
 import Dict exposing (Dict)
 import List.Extra as List
 import List.Extra2 as List
@@ -22,7 +22,7 @@ groupingNotes wavs =
         group =
             groupingByWaveFiles wavs
     in
-    List.gatherBy (group << .value)
+    List.partition (.ext >> key >> (==) 0) >> (\( a, b ) -> a :: List.gatherBy (group << .value) b)
 
 
 groupingByWaveFiles : Dict Int String -> (Int -> Maybe Int)
