@@ -1,5 +1,6 @@
 port module Main exposing (..)
 
+import Bms.Converter exposing (groupingNotes)
 import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Types exposing (Bms, Note, RawBms, decodeRawBms)
@@ -24,6 +25,7 @@ port loadBMS : (Value -> msg) -> Sub msg
 type Model
     = Init (Maybe String)
     | Preview Bms (List ( Int, List Note ))
+    | Test Bms (List (List ( Int, List Note )))
 
 
 init : () -> ( Model, Cmd Msg )
@@ -61,6 +63,7 @@ update msg model =
                     in
                     ( Preview data (Load.separateByMeasure <| Load.separeteLn data.notes), Cmd.none )
 
+                -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
                     Debug.todo ""
 
@@ -83,6 +86,10 @@ view model =
 
         Preview bms sep ->
             lazy2 Preview.view bms sep
+
+        Test bms seps ->
+            Html.div [] <|
+                List.map (lazy2 Preview.view bms) seps
 
 
 main : Program () Model Msg
