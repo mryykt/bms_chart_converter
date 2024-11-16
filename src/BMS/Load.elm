@@ -1,5 +1,6 @@
 module Bms.Load exposing (fromRawData, separateByMeasure, separeteLn)
 
+import BTime
 import Bms.Types as Bms exposing (Bms, ChartType(..), Note, NoteType(..), Object, RawBms)
 import Bms.Utils exposing (base)
 import Dict
@@ -197,7 +198,7 @@ ln1 =
                     if l == 0 then
                         case Dict.get k state of
                             Just v ->
-                                ( Dict.remove k state, { note | ext = Long k (toFloat (v.measure - note.measure) + v.fraction - note.fraction) } :: notes )
+                                ( Dict.remove k state, { note | ext = Long k (BTime.diff v note) } :: notes )
 
                             Nothing ->
                                 ( Dict.insert k { measure = note.measure, fraction = note.fraction } state, note :: notes )
@@ -221,7 +222,7 @@ ln2 lnobj =
             else
                 case Dict.get (Bms.key note.ext) state of
                     Just v ->
-                        ( Dict.remove (Bms.key note.ext) state, { note | ext = Long (Bms.key note.ext) (toFloat (v.measure - note.measure) + v.fraction - note.fraction) } :: notes )
+                        ( Dict.remove (Bms.key note.ext) state, { note | ext = Long (Bms.key note.ext) (BTime.diff v note) } :: notes )
 
                     Nothing ->
                         ( state, note :: notes )
