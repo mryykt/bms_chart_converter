@@ -100,7 +100,6 @@ oneMeasure bms ( measure, notes ) =
                         _ ->
                             220
                 )
-            , padding2 zero (px 5)
             , border3 (px 1) solid (rgb 255 255 255)
             , displayFlex
             , flexDirection row

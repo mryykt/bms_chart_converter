@@ -1,16 +1,15 @@
 port module Main exposing (..)
 
-import Bms.Converter exposing (groupingNotes)
 import Bms.Load as Load
 import Bms.Preview as Preview
-import Bms.Types exposing (Bms, Note, RawBms, decodeRawBms)
+import Bms.Types exposing (Bms, RawBms, decodeRawBms)
 import Browser
 import File exposing (File)
 import File.Select as Select
 import Html.Styled as Html exposing (Html, button, div, text)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick)
-import Html.Styled.Lazy exposing (lazy2)
+import Html.Styled.Lazy exposing (lazy)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
 import Task
@@ -24,8 +23,7 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 type Model
     = Init (Maybe String)
-    | Preview Bms (List ( Int, List Note ))
-    | Test Bms (List (List ( Int, List Note )))
+    | Model (Maybe Bms)
 
 
 init : () -> ( Model, Cmd Msg )
@@ -44,31 +42,33 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( model, msg ) of
-        ( Init _, FileRequested ) ->
+    case msg of
+        FileRequested ->
             ( model, Select.file [ ".bms", ".bme", ".bml", ".pms" ] FileSelected )
 
-        ( Init _, FileSelected file ) ->
-            ( Init (Just <| File.name file), Task.perform FileLoaded (File.toString file) )
+        FileSelected file ->
+            ( Init <| Just <| File.name file, Task.perform FileLoaded (File.toString file) )
 
-        ( Init (Just name), FileLoaded buf ) ->
-            ( model, compileBMS { name = name, buf = buf } )
+        FileLoaded buf ->
+            case model of
+                Init (Just name) ->
+                    ( model, compileBMS { name = name, buf = buf } )
 
-        ( Init (Just _), LoadBMS result ) ->
+                _ ->
+                    ( model, Cmd.none )
+
+        LoadBMS result ->
             case result of
                 Ok raw ->
                     let
                         data =
                             Load.fromRawData raw
                     in
-                    ( Preview data (Load.separateByMeasure <| Load.separeteLn data.notes), Cmd.none )
+                    ( Model <| Just data, Cmd.none )
 
                 -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
                     Debug.todo ""
-
-        _ ->
-            ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -78,18 +78,15 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    case model of
-        Init _ ->
-            div []
-                [ button [ onClick FileRequested ] [ text "file" ]
-                ]
+    div []
+        [ button [ onClick FileRequested ] [ text "file" ]
+        , case model of
+            Model (Just bms) ->
+                lazy (Preview.view bms << (Load.separateByMeasure << Load.separeteLn << .notes)) bms
 
-        Preview bms sep ->
-            lazy2 Preview.view bms sep
-
-        Test bms seps ->
-            Html.div [] <|
-                List.map (lazy2 Preview.view bms) seps
+            _ ->
+                div [] []
+        ]
 
 
 main : Program () Model Msg
