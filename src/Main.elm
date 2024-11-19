@@ -68,7 +68,7 @@ update msg model =
 
                 -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
-                    Debug.todo ""
+                    ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

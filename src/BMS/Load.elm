@@ -26,7 +26,7 @@ fromRawData { name, headers, mlens, data } =
                 Long (ch - 5 * 36) 0
 
             else
-                Debug.todo "other note type"
+                Normal 0
 
         chartType =
             let
