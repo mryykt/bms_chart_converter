@@ -1,13 +1,19 @@
 port module Experimental exposing (..)
 
+import BTime
+import Bms.Converter exposing (groupingNotes)
 import Bms.Load as Load
 import Bms.Types exposing (Bms, RawBms, decodeRawBms)
 import Browser
+import Clustering
+import Css exposing (..)
 import Html.Styled as Html exposing (Html, div)
-import Html.Styled.Attributes exposing (..)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
+import List.Extra as List
+import Maybe.Extra as Maybe
 import SampleData exposing (..)
+import Svg.Styled.Attributes exposing (css)
 
 
 port compileBMS : { name : String, buf : String } -> Cmd msg
@@ -63,8 +69,28 @@ view model =
             div []
                 []
 
-        Model _ ->
-            div [] []
+        Model bms ->
+            let
+                group =
+                    groupingNotes bms.header.waves bms.notes
+
+                f notes =
+                    let
+                        mint =
+                            Maybe.unwrap 0 BTime.toFloat <| List.head notes
+
+                        maxt =
+                            Maybe.unwrap 0 BTime.toFloat <| List.last notes
+
+                        density =
+                            Clustering.density gauss 0.4 <| List.map BTime.toFloat notes
+
+                        gauss x =
+                            1 / sqrt (2 * pi) * e ^ (-x * x / 2)
+                    in
+                    Clustering.testView mint maxt density
+            in
+            div [ css [ position relative, width (px 300), padding (px 50) ] ] <| List.map (f >> Html.fromUnstyled) group
 
 
 main : Program () Model Msg
