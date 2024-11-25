@@ -1,17 +1,23 @@
-module Bms.Converter exposing (convert, groupingNotes)
+module Bms.Converter exposing (convert, defOption, groupingNotes)
 
 import Basics.Extra exposing (..)
 import Bms.Types exposing (Bms, ChartType, Note, key)
+import Clustering.KernelFunction as Kernel
 import Dict exposing (Dict)
 import List.Extra as List
 import List.Extra2 as List
 
 
-type alias Option =
-    {}
+type alias Options =
+    { bandWidth : Float, kernelFunction : Float -> Float }
 
 
-convert : ChartType -> Option -> Bms -> Bms
+defOption : Options
+defOption =
+    { bandWidth = 0.3, kernelFunction = Kernel.gauss }
+
+
+convert : ChartType -> Options -> Bms -> Bms
 convert =
     Debug.todo ""
 
