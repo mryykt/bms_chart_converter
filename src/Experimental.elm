@@ -3,11 +3,16 @@ port module Experimental exposing (..)
 import BTime
 import Bms.Converter exposing (groupingNotes)
 import Bms.Load as Load
-import Bms.Types exposing (Bms, RawBms, decodeRawBms)
+import Bms.Preview as Preview
+import Bms.Types exposing (Bms, Note, RawBms, decodeRawBms)
 import Browser
+import Chart as C
+import Chart.Attributes as CA
 import Clustering
 import Css exposing (..)
-import Html.Styled as Html exposing (Html, div)
+import Html as UH
+import Html.Styled as H exposing (Html, div)
+import Html.Styled.Lazy exposing (lazy)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
 import List.Extra as List
@@ -72,32 +77,63 @@ view model =
         Model bms ->
             let
                 group =
-                    groupingNotes bms.header.waves bms.notes
-
-                f notes =
-                    let
-                        mint =
-                            Maybe.unwrap 0 BTime.toFloat <| List.head notes
-
-                        maxt =
-                            Maybe.unwrap 0 BTime.toFloat <| List.last notes
-
-                        density =
-                            Clustering.density gauss 0.4 <| List.map BTime.toFloat notes
-
-                        gauss x =
-                            1 / sqrt (2 * pi) * e ^ (-x * x / 2)
-                    in
-                    Clustering.testView mint maxt density
+                    groupingNotes bms.header.waves bms.notes |> List.concatMap Clustering.rough
             in
-            div [ css [ position relative, width (px 300), padding (px 50) ] ] <| List.map (f >> Html.fromUnstyled) group
+            div [ css [ position relative, width (px 900), padding (px 50) ] ]
+                [ div [] <| List.map (testView >> H.fromUnstyled) group, lazy (Preview.view bms << (Load.separateByMeasure << Load.separeteLn << .notes)) bms ]
+
+
+testView : List Note -> UH.Html msg
+testView notes =
+    let
+        times =
+            List.map BTime.toFloat notes
+
+        mint =
+            Maybe.withDefault 0 <| List.head times
+
+        maxt =
+            Maybe.withDefault 0 <| List.last times
+
+        density =
+            Clustering.density gauss 0.3 times
+
+        gauss x =
+            1 / sqrt (2 * pi) * e ^ (-x * x / 2)
+
+        data1 =
+            List.map (\t -> { t = t, y = density t }) <| rangef mint maxt 0.1
+
+        data2 =
+            List.map (\t -> { t = t, y = 0.1 }) times
+    in
+    C.chart [ CA.width 900, CA.height 300, CA.padding { top = 30, bottom = 10, left = 10, right = 10 } ]
+        [ C.xLabels []
+        , C.yLabels []
+        , C.series .t
+            [ C.interpolated .y [ CA.monotone ] [ CA.circle ]
+            ]
+            data1
+        , C.series .t
+            [ C.scatter .y [] ]
+            data2
+        ]
+
+
+rangef : Float -> Float -> Float -> List Float
+rangef minv maxv step =
+    if minv < maxv then
+        minv :: rangef (minv + step) maxv step
+
+    else
+        []
 
 
 main : Program () Model Msg
 main =
     Browser.element
         { init = init
-        , view = Html.toUnstyled << view
+        , view = H.toUnstyled << view
         , update = update
         , subscriptions = subscriptions
         }
