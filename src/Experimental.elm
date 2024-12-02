@@ -9,6 +9,7 @@ import Browser
 import Chart as C
 import Chart.Attributes as CA
 import Clustering
+import Clustering.KernelFunction as KernelFunction
 import Css exposing (..)
 import Html as UH
 import Html.Styled as H exposing (Html, div)
@@ -77,7 +78,9 @@ view model =
         Model bms ->
             let
                 group =
-                    groupingNotes bms.header.waves bms.notes |> List.concatMap Clustering.rough
+                    groupingNotes bms.header.waves bms.notes
+                        |> List.concatMap Clustering.rough
+                        |> List.concatMap (Clustering.clustering 0.3 KernelFunction.gauss BTime.toFloat)
             in
             div [ css [ position relative, width (px 900), padding (px 50) ] ]
                 [ div [] <| List.map (testView >> H.fromUnstyled) group, lazy (Preview.view bms << (Load.separateByMeasure << Load.separeteLn << .notes)) bms ]
@@ -96,10 +99,7 @@ testView notes =
             Maybe.withDefault 0 <| List.last times
 
         density =
-            Clustering.density gauss 0.3 times
-
-        gauss x =
-            1 / sqrt (2 * pi) * e ^ (-x * x / 2)
+            Clustering.density KernelFunction.gauss 0.3 times
 
         data1 =
             List.map (\t -> { t = t, y = density t }) <| rangef mint maxt 0.1
