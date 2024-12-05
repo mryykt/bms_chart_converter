@@ -1,5 +1,6 @@
-module Bms.Preview exposing (view)
+module Bms.Preview exposing (groupedView, view)
 
+import Array
 import Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), key, setKey)
 import Css exposing (..)
 import Dict
@@ -15,11 +16,16 @@ type PSide
 
 view : Bms -> List ( Int, List Note ) -> Html msg
 view bms notess =
-    Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <| List.map (oneMeasure bms) <| fill 0 0 notess
+    Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <| List.map (oneMeasure False bms) <| fill 0 0 notess
 
 
-oneMeasure : Bms -> ( Int, List Note ) -> Html msg
-oneMeasure bms ( measure, notes ) =
+groupedView : Bms -> List ( Int, List Note ) -> Html msg
+groupedView bms notess =
+    Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <| List.map (oneMeasure True bms) <| fill 0 0 notess
+
+
+oneMeasure : Bool -> Bms -> ( Int, List Note ) -> Html msg
+oneMeasure isGrouped bms ( measure, notes ) =
     Html.div
         [ id <| "measure-" ++ String.fromInt measure
         , css
@@ -40,18 +46,18 @@ oneMeasure bms ( measure, notes ) =
                 ( left, right ) =
                     separateForDP notes
             in
-            [ onePSide Left bms left
+            [ onePSide isGrouped Left bms left
             , separator
-            , onePSide Right bms right
+            , onePSide isGrouped Right bms right
             , measureNumber measure
             ]
 
         else
-            [ onePSide Left bms notes, measureNumber measure ]
+            [ onePSide isGrouped Left bms notes, measureNumber measure ]
 
 
-onePSide : PSide -> Bms -> List Note -> Html msg
-onePSide pSide bms notesPSide =
+onePSide : Bool -> PSide -> Bms -> List Note -> Html msg
+onePSide isGrouped pSide bms notesPSide =
     let
         lanes =
             toLanes pSide bms notesPSide
@@ -64,7 +70,7 @@ onePSide pSide bms notesPSide =
             [ position relative, width (pct 80), height (pct 100), backgroundColor (rgb 50 50 50), displayFlex ]
         ]
     <|
-        List.map (lane pSide bms.chartType) lanes
+        List.map (lane isGrouped pSide bms.chartType) lanes
             ++ [ quarter 1, quarter 2, quarter 3 ]
 
 
@@ -104,14 +110,18 @@ measureNumber n =
         [ Html.text <| String.fromInt n ]
 
 
-lane : PSide -> ChartType -> ( Int, List Note ) -> Html msg
-lane pSide chartType ( k, notes ) =
+lane : Bool -> PSide -> ChartType -> ( Int, List Note ) -> Html msg
+lane isGrouped pSide chartType ( k, notes ) =
     let
         w =
             noteWidth chartType k
 
-        c =
-            noteColor chartType k
+        c n =
+            if isGrouped then
+                groupedNoteColor n
+
+            else
+                noteColor chartType k
 
         note n =
             Html.div
@@ -123,7 +133,7 @@ lane pSide chartType ( k, notes ) =
                             , width (pct 100)
                             , height (px 4)
                             , zIndex (int 100)
-                            , backgroundColor c
+                            , backgroundColor (c n)
                             ]
 
                         Long _ l ->
@@ -132,7 +142,7 @@ lane pSide chartType ( k, notes ) =
                             , width (pct 100)
                             , height (pct <| 100 * l)
                             , zIndex (int 100)
-                            , backgroundColor c
+                            , backgroundColor (c n)
                             ]
                 ]
                 []
@@ -314,3 +324,23 @@ noteColor chartType k =
 
             else
                 rgb 0 100 255
+
+
+groupedNoteColor : Note -> Color
+groupedNoteColor note =
+    let
+        table =
+            Array.fromList
+                [ rgb 255 0 0
+                , rgb 0 255 0
+                , rgb 0 0 255
+                , rgb 255 255 0
+                , rgb 0 255 255
+                , rgb 127 0 0
+                , rgb 0 127 0
+                , rgb 0 0 127
+                , rgb 127 127 0
+                , rgb 0 127 127
+                ]
+    in
+    Array.get (modBy (Array.length table) note.value) table |> Maybe.withDefault (rgb 255 255 255)

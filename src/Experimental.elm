@@ -4,7 +4,7 @@ import BTime
 import Bms.Converter exposing (groupingNotes)
 import Bms.Load as Load
 import Bms.Preview as Preview
-import Bms.Types exposing (Bms, Note, RawBms, decodeRawBms)
+import Bms.Types exposing (Bms, Note, RawBms, decodeRawBms, sort)
 import Browser
 import Chart as C
 import Chart.Attributes as CA
@@ -80,10 +80,13 @@ view model =
                 group =
                     groupingNotes bms.header.waves bms.notes
                         |> List.concatMap Clustering.rough
-                        |> List.concatMap (Clustering.clustering 0.3 KernelFunction.gauss BTime.toFloat)
+                        |> List.concatMap (Clustering.clustering 0.5 KernelFunction.gauss BTime.toFloat)
+
+                groupedNotes =
+                    group |> List.indexedMap (\i notes -> List.map (\note -> { note | value = i }) notes) |> List.concat |> sort
             in
             div [ css [ position relative, width (px 900), padding (px 50) ] ]
-                [ div [] <| List.map (testView >> H.fromUnstyled) group, lazy (Preview.view bms << (Load.separateByMeasure << Load.separeteLn << .notes)) bms ]
+                [ lazy (Preview.groupedView bms << (Load.separateByMeasure << Load.separeteLn << .notes)) { bms | notes = groupedNotes } ]
 
 
 testView : List Note -> UH.Html msg
