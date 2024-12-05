@@ -67,7 +67,7 @@ localMinimumPoints f left right step =
                             identity
                        )
     in
-    Debug.log "" <| helper left 1
+    helper left 1
 
 
 rangef : Float -> Float -> Float -> List Float
