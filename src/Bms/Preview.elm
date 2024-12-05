@@ -1,6 +1,7 @@
 module Bms.Preview exposing (groupedView, view)
 
 import Array
+import Bms.Load as Load
 import Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), key, setKey)
 import Css exposing (..)
 import Dict
@@ -14,14 +15,22 @@ type PSide
     | Right
 
 
-view : Bms -> List ( Int, List Note ) -> Html msg
-view bms notess =
-    Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <| List.map (oneMeasure False bms) <| fill 0 0 notess
+view : Bms -> Html msg
+view bms =
+    Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <|
+        List.map (oneMeasure False bms) <|
+            fill 0 0 <|
+                Load.separateByMeasure <|
+                    Load.separeteLn bms.notes
 
 
-groupedView : Bms -> List ( Int, List Note ) -> Html msg
-groupedView bms notess =
-    Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <| List.map (oneMeasure True bms) <| fill 0 0 notess
+groupedView : Bms -> Html msg
+groupedView bms =
+    Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <|
+        List.map (oneMeasure True bms) <|
+            fill 0 0 <|
+                Load.separateByMeasure <|
+                    Load.separeteLn bms.notes
 
 
 oneMeasure : Bool -> Bms -> ( Int, List Note ) -> Html msg

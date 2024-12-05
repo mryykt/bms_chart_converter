@@ -82,7 +82,7 @@ view model =
         [ button [ onClick FileRequested ] [ text "file" ]
         , case model of
             Model (Just bms) ->
-                lazy (Preview.view bms << (Load.separateByMeasure << Load.separeteLn << .notes)) bms
+                lazy Preview.view bms
 
             _ ->
                 div [] []

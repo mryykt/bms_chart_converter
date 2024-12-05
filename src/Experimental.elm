@@ -86,7 +86,7 @@ view model =
                     group |> List.indexedMap (\i notes -> List.map (\note -> { note | value = i }) notes) |> List.concat |> sort
             in
             div [ css [ position relative, width (px 900), padding (px 50) ] ]
-                [ lazy (Preview.groupedView bms << (Load.separateByMeasure << Load.separeteLn << .notes)) { bms | notes = groupedNotes } ]
+                [ lazy Preview.groupedView { bms | notes = groupedNotes } ]
 
 
 testView : List Note -> UH.Html msg
