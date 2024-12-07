@@ -1,25 +1,56 @@
-module Bms.Converter exposing (convert, defOption, groupingNotes)
+module Bms.Converter exposing
+    ( convert
+    , Options, IncreaseScratchOptions
+    , defOptions, defIncreaseScratchOptions
+    , groupingNotes
+    )
 
+{-| A converter of bms chart.
+
+@docs convert
+@docs Options, IncreaseScratchOptions
+@docs defOptions, defIncreaseScratchOptions
+
+-}
+
+import BTime
 import Basics.Extra exposing (..)
 import Bms.Types exposing (Bms, ChartType, Note, key)
+import Clustering
 import Clustering.KernelFunction as Kernel
 import Dict exposing (Dict)
 import List.Extra as List
 import List.Extra2 as List
+import Maybe.Extra as Maybe
 
 
 type alias Options =
-    { bandWidth : Float, kernelFunction : Float -> Float }
+    { bandWidth : Float, kernelFunction : Float -> Float, inscreaseScratchOptions : Maybe IncreaseScratchOptions }
 
 
-defOption : Options
-defOption =
-    { bandWidth = 0.3, kernelFunction = Kernel.gauss }
+type alias IncreaseScratchOptions =
+    { minDuration : Float }
+
+
+defOptions : Options
+defOptions =
+    { bandWidth = 0.3, kernelFunction = Kernel.gauss, inscreaseScratchOptions = Nothing }
+
+
+defIncreaseScratchOptions : IncreaseScratchOptions
+defIncreaseScratchOptions =
+    { minDuration = 0.125 }
 
 
 convert : ChartType -> Options -> Bms -> Bms
-convert =
-    Debug.todo ""
+convert chartType options bms =
+    let
+        group =
+            groupingNotes bms.header.waves bms.notes
+                |> List.concatMap Clustering.rough
+                |> List.concatMap (Clustering.clustering options.bandWidth options.kernelFunction BTime.toFloat)
+    in
+    bms
 
 
 groupingNotes : Dict Int String -> List Note -> List (List Note)
@@ -28,7 +59,8 @@ groupingNotes wavs =
         group =
             groupingByWaveFiles wavs
     in
-    List.partition (.ext >> key >> (==) 0) >> (\( a, b ) -> a :: List.gatherBy (group << .value) b)
+    List.partition (.ext >> key >> (==) 0)
+        >> (\( a, b ) -> a :: List.gatherBy (group << .value) b)
 
 
 groupingByWaveFiles : Dict Int String -> (Int -> Maybe Int)
@@ -56,3 +88,18 @@ groupingByWaveFiles wavs =
                 |> Dict.fromList
     in
     flip Dict.get wavs >> Maybe.andThen (flip Dict.get groupNumbers)
+
+
+doujiOshi : List Note -> Bool
+doujiOshi =
+    List.foldl2 (\x y acc -> acc && Maybe.unwrap True (BTime.eq x >> not) y) True
+
+
+minDuration : List Note -> Float
+minDuration =
+    List.foldl2 (\x y acc -> Maybe.unwrap acc (flip BTime.diff x >> min acc) y) 1000
+
+
+isOverlappingNote : List Note -> List Note -> Bool
+isOverlappingNote notes1 notes2 =
+    True

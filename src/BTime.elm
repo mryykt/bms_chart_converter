@@ -12,6 +12,11 @@ toFloat obj =
     Basics.toFloat obj.measure + obj.fraction
 
 
+eq : TimeObject x -> TimeObject y -> Bool
+eq obj1 obj2 =
+    toFloat obj1 == toFloat obj2
+
+
 diff : TimeObject x -> TimeObject y -> Float
 diff obj1 obj2 =
     toFloat obj1 - toFloat obj2
