@@ -4,27 +4,29 @@ import BTime
 import Bms.Types exposing (Note)
 import List.Extra as List
 import List.Extra2 as List
+import List.Nonempty as Nonempty exposing (ListNonempty)
+import List.Nonempty.Extra as Nonempty
 
 
-rough : List Note -> List (List Note)
+rough : ListNonempty Note -> List (ListNonempty Note)
 rough notes =
-    List.groupOn (\a b -> BTime.diff b a < 1) notes
+    Nonempty.groupWhile (\a b -> BTime.diff b a < 1) notes |> Nonempty.toList
 
 
-clustering : Float -> (Float -> Float) -> (a -> Float) -> List a -> List (List a)
+clustering : Float -> (Float -> Float) -> (a -> Float) -> ListNonempty a -> List (ListNonempty a)
 clustering bandWidth kernel f xs =
     let
         times =
-            List.map f xs
+            Nonempty.map f xs
 
         dens =
-            density kernel bandWidth times
+            density kernel bandWidth <| Nonempty.toList times
 
         mint =
-            List.head times |> Maybe.withDefault 0
+            Nonempty.head times
 
         maxt =
-            List.last times |> Maybe.withDefault 0
+            Nonempty.last times
 
         lmps =
             localMinimumPoints dens mint maxt 0.1
@@ -32,7 +34,7 @@ clustering bandWidth kernel f xs =
         helper t ( group, ungroup ) =
             List.span (f >> (>) t) ungroup |> (\( group_, ungroup_ ) -> ( group ++ [ group_ ], ungroup_ ))
     in
-    List.foldl helper ( [], xs ) lmps |> (\( a, b ) -> a ++ [ b ])
+    List.foldl helper ( [], Nonempty.toList xs ) lmps |> (\( a, b ) -> a ++ [ b ]) |> List.filterMap Nonempty.fromList
 
 
 density : (Float -> Float) -> Float -> List Float -> Float -> Float

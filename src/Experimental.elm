@@ -17,6 +17,7 @@ import Html.Styled.Lazy exposing (lazy)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
 import List.Extra as List
+import List.Nonempty as Nonempty
 import Maybe.Extra as Maybe
 import SampleData exposing (..)
 import Svg.Styled.Attributes exposing (css)
@@ -83,7 +84,7 @@ view model =
                         |> List.concatMap (Clustering.clustering 0.5 KernelFunction.gauss BTime.toFloat)
 
                 groupedNotes =
-                    group |> List.indexedMap (\i notes -> List.map (\note -> { note | value = i }) notes) |> List.concat |> sort
+                    List.indexedMap (\i notes -> List.map (\note -> { note | value = i }) <| Nonempty.toList notes) group |> List.concat |> sort
             in
             div [ css [ position relative, width (px 900), padding (px 50) ] ]
                 [ lazy Preview.groupedView { bms | notes = groupedNotes } ]

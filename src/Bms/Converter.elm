@@ -21,6 +21,8 @@ import Clustering.KernelFunction as Kernel
 import Dict exposing (Dict)
 import List.Extra as List
 import List.Extra2 as List
+import List.Nonempty as Nonempty exposing (ListNonempty)
+import List.Nonempty.Extra as Nonempty
 import Maybe.Extra as Maybe
 
 
@@ -53,14 +55,14 @@ convert chartType options bms =
     bms
 
 
-groupingNotes : Dict Int String -> List Note -> List (List Note)
+groupingNotes : Dict Int String -> List Note -> List (ListNonempty Note)
 groupingNotes wavs =
     let
         group =
             groupingByWaveFiles wavs
     in
     List.partition (.ext >> key >> (==) 0)
-        >> (\( a, b ) -> a :: List.gatherBy (group << .value) b)
+        >> (\( a, b ) -> Nonempty.gatherEqualsByList (group << .value) b |> (\tail -> Maybe.unwrap tail (flip (::) tail) <| Nonempty.fromList a))
 
 
 groupingByWaveFiles : Dict Int String -> (Int -> Maybe Int)
