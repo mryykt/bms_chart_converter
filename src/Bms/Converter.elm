@@ -92,16 +92,20 @@ groupingByWaveFiles wavs =
     flip Dict.get wavs >> Maybe.andThen (flip Dict.get groupNumbers)
 
 
-doujiOshi : List Note -> Bool
+doujiOshi : ListNonempty Note -> Bool
 doujiOshi =
-    List.foldl2 (\x y acc -> acc && Maybe.unwrap True (BTime.eq x >> not) y) True
+    Nonempty.toList >> List.foldl2 (\x y acc -> acc && Maybe.unwrap True (BTime.eq x >> not) y) True
 
 
-minDuration : List Note -> Float
+minDuration : ListNonempty Note -> Float
 minDuration =
-    List.foldl2 (\x y acc -> Maybe.unwrap acc (flip BTime.diff x >> min acc) y) 1000
+    Nonempty.toList >> List.foldl2 (\x y acc -> Maybe.unwrap acc (flip BTime.diff x >> min acc) y) 1000
 
 
-isOverlappingNote : List Note -> List Note -> Bool
-isOverlappingNote notes1 notes2 =
-    True
+isOverlappingGroup : ListNonempty Note -> ListNonempty Note -> Bool
+isOverlappingGroup notes1 notes2 =
+    if BTime.diff (Nonempty.head notes1) (Nonempty.last notes2) > 0 || BTime.diff (Nonempty.head notes2) (Nonempty.last notes1) > 0 then
+        False
+
+    else
+        True
