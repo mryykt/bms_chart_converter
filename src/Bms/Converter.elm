@@ -97,9 +97,9 @@ doujiOshi =
     Nonempty.toList >> List.foldl2 (\x y acc -> acc && Maybe.unwrap True (BTime.eq x >> not) y) True
 
 
-minDuration : ListNonempty Note -> Float
-minDuration =
-    Nonempty.toList >> List.foldl2 (\x y acc -> Maybe.unwrap acc (flip BTime.diff x >> min acc) y) 1000
+minDuration : Dict Int Float -> ListNonempty Note -> Float
+minDuration mlens =
+    Nonempty.toList >> List.foldl2 (\x y acc -> Maybe.unwrap acc (flip (BTime.diffWithMeasureLength mlens) x >> min acc) y) 1000
 
 
 isOverlappingGroup : ListNonempty Note -> ListNonempty Note -> Bool
