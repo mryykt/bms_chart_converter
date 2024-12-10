@@ -49,7 +49,7 @@ convert chartType options bms =
     let
         group =
             groupingNotes bms.header.waves bms.notes
-                |> List.andThen Clustering.rough
+                |> List.andThen (Clustering.rough bms.mlens)
                 |> List.andThen (Clustering.clustering options.bandWidth options.kernelFunction BTime.toFloat)
     in
     bms

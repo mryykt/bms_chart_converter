@@ -14,20 +14,29 @@ toFloat obj =
     Basics.toFloat obj.measure + obj.fraction
 
 
+fromFloat : Dict Int Float -> Float -> TimeObject {}
+fromFloat mlens v =
+    let
+        measure =
+            floor v
+    in
+    { measure = measure, fraction = Maybe.withDefault 1.0 (Dict.get measure mlens) * (v - Basics.toFloat measure) }
+
+
+compare : TimeObject x -> TimeObject y -> Basics.Order
+compare obj1 obj2 =
+    Basics.compare (toFloat obj1) (toFloat obj2)
+
+
 eq : TimeObject x -> TimeObject y -> Bool
 eq obj1 obj2 =
     toFloat obj1 == toFloat obj2
 
 
-diff : TimeObject x -> TimeObject y -> Float
-diff obj1 obj2 =
-    toFloat obj1 - toFloat obj2
-
-
 diffWithMeasureLength : Dict Int Float -> TimeObject x -> TimeObject y -> Float
 diffWithMeasureLength mlens obj1 obj2 =
     if obj1.measure == obj2.measure || obj1.fraction == 0 then
-        diff obj1 obj2 * Maybe.withDefault 1.0 (Dict.get obj2.measure mlens)
+        (toFloat obj1 - toFloat obj2) * Maybe.withDefault 1.0 (Dict.get obj2.measure mlens)
 
     else
         diffWithMeasureLength mlens { obj1 | measure = obj2.measure + 1, fraction = 0 } obj2 + diffWithMeasureLength mlens obj1 { obj2 | measure = obj2.measure + 1, fraction = 0 }

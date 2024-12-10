@@ -80,7 +80,7 @@ view model =
             let
                 group =
                     groupingNotes bms.header.waves bms.notes
-                        |> List.concatMap Clustering.rough
+                        |> List.concatMap (Clustering.rough bms.mlens)
                         |> List.concatMap (Clustering.clustering 0.5 KernelFunction.gauss BTime.toFloat)
 
                 groupedNotes =

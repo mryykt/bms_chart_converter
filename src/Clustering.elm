@@ -2,15 +2,16 @@ module Clustering exposing (..)
 
 import BTime
 import Bms.Types exposing (Note)
+import Dict exposing (Dict)
 import List.Extra as List
 import List.Extra2 as List
 import List.Nonempty as Nonempty exposing (ListNonempty)
 import List.Nonempty.Extra as Nonempty
 
 
-rough : ListNonempty Note -> List (ListNonempty Note)
-rough notes =
-    Nonempty.groupWhile (\a b -> BTime.diff b a < 1) notes |> Nonempty.toList
+rough : Dict Int Float -> ListNonempty Note -> List (ListNonempty Note)
+rough mlens notes =
+    Nonempty.groupWhile (\a b -> BTime.diffWithMeasureLength mlens b a < 1) notes |> Nonempty.toList
 
 
 clustering : Float -> (Float -> Float) -> (a -> Float) -> ListNonempty a -> List (ListNonempty a)
