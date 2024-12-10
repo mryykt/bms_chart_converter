@@ -3,7 +3,7 @@ module Bms.Load exposing (fromRawData, separateByMeasure, separeteLn)
 import BTime
 import Bms.Types as Bms exposing (Bms, ChartType(..), Note, NoteType(..), Object, RawBms)
 import Bms.Utils exposing (base)
-import Dict
+import Dict exposing (Dict)
 import List.Extra as List
 import Maybe.Extra as Maybe
 import String.Extra as String
@@ -55,7 +55,7 @@ fromRawData { name, headers, mlens, data } =
     { chartType = chartType
     , header = headers
     , mlens = mlens
-    , notes = Maybe.unwrap identity ln2 headers.lnobj <| ln1 <| List.map (adjustKey chartType) notes_
+    , notes = Maybe.unwrap identity (ln2 mlens) headers.lnobj <| ln1 mlens <| List.map (adjustKey chartType) notes_
     , others = others
     }
 
@@ -189,8 +189,8 @@ separateByMeasure =
     List.groupWhile (\a b -> a.measure == b.measure) >> List.map (\( a, b ) -> ( a.measure, a :: b ))
 
 
-ln1 : List Note -> List Note
-ln1 =
+ln1 : Dict Int Float -> List Note -> List Note
+ln1 mlens =
     let
         f note ( state, notes ) =
             case note.ext of
@@ -198,7 +198,7 @@ ln1 =
                     if l == 0 then
                         case Dict.get k state of
                             Just v ->
-                                ( Dict.remove k state, { note | ext = Long k (BTime.diff v note) } :: notes )
+                                ( Dict.remove k state, { note | ext = Long k (BTime.diffWithMeasureLength mlens v note) } :: notes )
 
                             Nothing ->
                                 ( Dict.insert k { measure = note.measure, fraction = note.fraction } state, note :: notes )
@@ -212,8 +212,8 @@ ln1 =
     List.foldr f ( Dict.empty, [] ) >> Tuple.second
 
 
-ln2 : Int -> List Note -> List Note
-ln2 lnobj =
+ln2 : Dict Int Float -> Int -> List Note -> List Note
+ln2 mlens lnobj =
     let
         f note ( state, notes ) =
             if note.value == lnobj then
@@ -222,7 +222,7 @@ ln2 lnobj =
             else
                 case Dict.get (Bms.key note.ext) state of
                     Just v ->
-                        ( Dict.remove (Bms.key note.ext) state, { note | ext = Long (Bms.key note.ext) (BTime.diff v note) } :: notes )
+                        ( Dict.remove (Bms.key note.ext) state, { note | ext = Long (Bms.key note.ext) (BTime.diffWithMeasureLength mlens v note) } :: notes )
 
                     Nothing ->
                         ( state, note :: notes )
