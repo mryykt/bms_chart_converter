@@ -15,7 +15,7 @@ module Bms.Converter exposing
 
 import BTime
 import Basics.Extra exposing (..)
-import Bms.Types exposing (Bms, ChartType, Note, key)
+import Bms.Types as Bms exposing (Bms, ChartType, Note, NoteType(..), key)
 import Clustering
 import Clustering.KernelFunction as Kernel
 import Dict exposing (Dict)
@@ -31,7 +31,7 @@ type alias Options =
 
 
 type alias IncreaseScratchOptions =
-    { minDuration : Float }
+    { minDuration : Int }
 
 
 defOptions : Options
@@ -41,7 +41,7 @@ defOptions =
 
 defIncreaseScratchOptions : IncreaseScratchOptions
 defIncreaseScratchOptions =
-    { minDuration = 0.125 }
+    { minDuration = 8 }
 
 
 convert : ChartType -> Options -> Bms -> Bms
@@ -92,6 +92,35 @@ groupingByWaveFiles wavs =
     flip Dict.get wavs >> Maybe.andThen (flip Dict.get groupNumbers)
 
 
+inscreaseScratch : IncreaseScratchOptions -> Bms -> List (ListNonempty Note) -> List (ListNonempty Note)
+inscreaseScratch options bms groups =
+    let
+        ( scratches, keys ) =
+            List.partition (Nonempty.all (.ext >> Bms.key >> (==) 0)) groups
+
+        duration =
+            1 / toFloat options.minDuration
+
+        ( willScratches, willKeys ) =
+            List.partition
+                (\notes ->
+                    minDuration bms.mlens notes
+                        <= duration
+                        && List.all (not << isOverlappingGroup notes) scratches
+                )
+                keys
+
+        f ( scratches_, keys_ ) willScratches_ =
+            case willScratches_ of
+                x :: xs ->
+                    f ( x :: scratches_, keys_ ) (List.filterNot (isOverlappingGroup x) xs)
+
+                [] ->
+                    ( scratches_, keys_ )
+    in
+    List.sortBy (groupLength bms.mlens >> negate) willScratches |> f ( scratches, keys ++ willKeys ) |> (\( a, b ) -> a ++ b)
+
+
 doujiOshi : ListNonempty Note -> Bool
 doujiOshi =
     Nonempty.toList >> List.foldl2 (\x y acc -> acc && Maybe.unwrap True (BTime.eq x >> not) y) True
@@ -102,10 +131,33 @@ minDuration mlens =
     Nonempty.toList >> List.foldl2 (\x y acc -> Maybe.unwrap acc (flip (BTime.diffWithMeasureLength mlens) x >> min acc) y) 1000
 
 
+groupLength : Dict Int Float -> ListNonempty Note -> Float
+groupLength mlens notes =
+    let
+        ( h, t ) =
+            groupRange notes
+    in
+    BTime.diffWithMeasureLength mlens (Nonempty.last notes) (Nonempty.head notes)
+
+
 isOverlappingGroup : ListNonempty Note -> ListNonempty Note -> Bool
 isOverlappingGroup notes1 notes2 =
-    if BTime.diff (Nonempty.head notes1) (Nonempty.last notes2) > 0 || BTime.diff (Nonempty.head notes2) (Nonempty.last notes1) > 0 then
+    if BTime.compare (Nonempty.head notes1) (Nonempty.last notes2) == GT || BTime.compare (Nonempty.head notes2) (Nonempty.last notes1) == GT then
         False
 
     else
         True
+
+
+groupRange : ListNonempty Note -> ( Float, Float )
+groupRange =
+    let
+        lastTimeOfNote note =
+            case note.ext of
+                Long _ l ->
+                    BTime.toFloat note + l
+
+                _ ->
+                    BTime.toFloat note
+    in
+    Nonempty.foldl (\note -> Tuple.mapBoth (min (BTime.toFloat note)) (max (lastTimeOfNote note))) ( 0, 999999 )
