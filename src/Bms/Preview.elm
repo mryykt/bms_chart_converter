@@ -2,9 +2,10 @@ module Bms.Preview exposing (groupedView, view)
 
 import Array
 import Bms.Load as Load
+import Bms.TimeObject as TimeObject
 import Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), key, setKey)
+import Bms.Utils exposing (measureLength)
 import Css exposing (..)
-import Dict
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes exposing (css, id)
 import List.Extra exposing (gatherEqualsBy)
@@ -21,7 +22,7 @@ view bms =
         List.map (oneMeasure False bms) <|
             fill 0 0 <|
                 Load.separateByMeasure <|
-                    Load.separeteLn bms.notes
+                    Load.separeteLn bms.lines bms.notes
 
 
 groupedView : Bms -> Html msg
@@ -30,7 +31,7 @@ groupedView bms =
         List.map (oneMeasure True bms) <|
             fill 0 0 <|
                 Load.separateByMeasure <|
-                    Load.separeteLn bms.notes
+                    Load.separeteLn bms.lines bms.notes
 
 
 oneMeasure : Bool -> Bms -> ( Int, List Note ) -> Html msg
@@ -39,7 +40,7 @@ oneMeasure isGrouped bms ( measure, notes ) =
         [ id <| "measure-" ++ String.fromInt measure
         , css
             [ position relative
-            , height (pct <| 20 * (Maybe.withDefault 1.0 <| Dict.get measure bms.mlens))
+            , height (pct <| 20 * (measureLength bms.lines measure / TimeObject.resolution))
             , width
                 (pct <| laneWidth bms.chartType)
             , minWidth
@@ -79,7 +80,7 @@ onePSide isGrouped pSide bms notesPSide =
             [ position relative, width (pct 80), height (pct 100), backgroundColor (rgb 50 50 50), displayFlex ]
         ]
     <|
-        List.map (lane isGrouped pSide bms.chartType) lanes
+        List.map (lane isGrouped pSide bms) lanes
             ++ [ quarter 1, quarter 2, quarter 3 ]
 
 
@@ -119,18 +120,18 @@ measureNumber n =
         [ Html.text <| String.fromInt n ]
 
 
-lane : Bool -> PSide -> ChartType -> ( Int, List Note ) -> Html msg
-lane isGrouped pSide chartType ( k, notes ) =
+lane : Bool -> PSide -> Bms -> ( Int, List Note ) -> Html msg
+lane isGrouped pSide bms ( k, notes ) =
     let
         w =
-            noteWidth chartType k
+            noteWidth bms.chartType k
 
         c n =
             if isGrouped then
                 groupedNoteColor n
 
             else
-                noteColor chartType k
+                noteColor bms.chartType k
 
         note n =
             Html.div
@@ -138,7 +139,7 @@ lane isGrouped pSide chartType ( k, notes ) =
                     case n.ext of
                         Normal _ ->
                             [ position absolute
-                            , bottom (pct (100 * n.fraction))
+                            , bottom (pct (100 * TimeObject.getFraction bms.lines n))
                             , width (pct 100)
                             , height (px 4)
                             , zIndex (int 100)
@@ -147,9 +148,9 @@ lane isGrouped pSide chartType ( k, notes ) =
 
                         Long _ l ->
                             [ position absolute
-                            , bottom (pct (100 * n.fraction))
+                            , bottom (pct (100 * TimeObject.getFraction bms.lines n))
                             , width (pct 100)
-                            , height (pct <| 100 * l)
+                            , height (pct <| 100 * l / measureLength bms.lines n.measure)
                             , zIndex (int 100)
                             , backgroundColor (c n)
                             ]

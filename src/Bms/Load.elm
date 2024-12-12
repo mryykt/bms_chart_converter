@@ -1,9 +1,10 @@
 module Bms.Load exposing (fromRawData, separateByMeasure, separeteLn)
 
-import BTime
+import Array exposing (Array)
+import Bms.TimeObject as TimeObject
 import Bms.Types as Bms exposing (Bms, ChartType(..), Note, NoteType(..), Object, RawBms)
 import Bms.Utils exposing (base)
-import Dict exposing (Dict)
+import Dict
 import List.Extra as List
 import Maybe.Extra as Maybe
 import String.Extra as String
@@ -12,11 +13,19 @@ import String.Extra as String
 fromRawData : RawBms -> Bms
 fromRawData { name, headers, mlens, data } =
     let
+        lines =
+            List.maximumBy .measure data
+                |> Maybe.unwrap 1 .measure
+                |> List.range 0
+                |> List.scanl (\x acc -> Maybe.unwrap TimeObject.resolution ((*) TimeObject.resolution) (Dict.get x mlens) + acc) 0
+                |> Array.fromList
+                |> Debug.log ""
+
         ( notes, others ) =
-            List.partition (\x -> 36 <= x.ext && x.ext < 36 * 3 || 5 * 36 <= x.ext && x.ext < 7 * 36) data
+            List.partition (\x -> 36 <= x.channel && x.channel < 36 * 3 || 5 * 36 <= x.channel && x.channel < 7 * 36) data
 
         notes_ =
-            List.map (\x -> { measure = x.measure, fraction = x.fraction, value = base 36 x.value, ext = toNoteType x.ext }) notes
+            List.map (\x -> { time = TimeObject.fromMeasureAndFraction lines x.measure x.fraction, measure = x.measure, value = base 36 x.value, ext = toNoteType x.channel }) notes
 
         toNoteType ch =
             if 36 <= ch && ch < 3 * 36 then
@@ -54,8 +63,8 @@ fromRawData { name, headers, mlens, data } =
     in
     { chartType = chartType
     , header = headers
-    , mlens = mlens
-    , notes = Maybe.unwrap identity (ln2 mlens) headers.lnobj <| ln1 mlens <| List.map (adjustKey chartType) notes_
+    , lines = lines
+    , notes = Maybe.unwrap identity ln2 headers.lnobj <| ln1 <| List.map (adjustKey chartType) notes_
     , others = others
     }
 
@@ -163,23 +172,35 @@ adjustKey ct note =
     { note | ext = ext }
 
 
-separeteLn : List Note -> List Note
-separeteLn =
+separeteLn : Array Float -> List Note -> List Note
+separeteLn lines =
     let
         f x notes =
             case x.ext of
                 Long _ l ->
-                    g x.measure x.fraction l x notes
+                    g x.time x.measure l x notes
 
                 _ ->
                     x :: notes
 
-        g m fr l note notes =
-            if l > 1.0 then
-                { note | measure = m, fraction = fr, ext = Long (Bms.key note.ext) (1.0 - fr) } :: g (m + 1) 0.0 (l - 1.0) note notes
+        g time measure l note notes =
+            let
+                measureStart =
+                    Maybe.withDefault 0 (Array.get measure lines)
+
+                measureEnd =
+                    Maybe.withDefault (measureStart + TimeObject.resolution) (Array.get (measure + 1) lines)
+            in
+            if l > measureEnd - time then
+                { time = time
+                , measure = measure
+                , value = note.value
+                , ext = Long (Bms.key note.ext) (measureEnd - time)
+                }
+                    :: g (time + measureEnd - measureStart) (measure + 1) (l - (measureEnd - time)) note notes
 
             else
-                { note | measure = m, fraction = fr, ext = Long (Bms.key note.ext) (l - fr) } :: notes
+                { time = time, measure = measure, value = note.value, ext = Long (Bms.key note.ext) l } :: notes
     in
     List.foldr f [] >> Bms.sort
 
@@ -189,8 +210,8 @@ separateByMeasure =
     List.groupWhile (\a b -> a.measure == b.measure) >> List.map (\( a, b ) -> ( a.measure, a :: b ))
 
 
-ln1 : Dict Int Float -> List Note -> List Note
-ln1 mlens =
+ln1 : List Note -> List Note
+ln1 =
     let
         f note ( state, notes ) =
             case note.ext of
@@ -198,10 +219,10 @@ ln1 mlens =
                     if l == 0 then
                         case Dict.get k state of
                             Just v ->
-                                ( Dict.remove k state, { note | ext = Long k (BTime.diffWithMeasureLength mlens v note) } :: notes )
+                                ( Dict.remove k state, { note | ext = Long k (TimeObject.diff v note) } :: notes )
 
                             Nothing ->
-                                ( Dict.insert k { measure = note.measure, fraction = note.fraction } state, note :: notes )
+                                ( Dict.insert k { time = note.time, measure = note.measure } state, note :: notes )
 
                     else
                         ( state, note :: notes )
@@ -212,17 +233,17 @@ ln1 mlens =
     List.foldr f ( Dict.empty, [] ) >> Tuple.second
 
 
-ln2 : Dict Int Float -> Int -> List Note -> List Note
-ln2 mlens lnobj =
+ln2 : Int -> List Note -> List Note
+ln2 lnobj =
     let
         f note ( state, notes ) =
             if note.value == lnobj then
-                ( Dict.insert (Bms.key note.ext) { measure = note.measure, fraction = note.fraction } state, notes )
+                ( Dict.insert (Bms.key note.ext) { time = note.time, measure = note.measure } state, notes )
 
             else
                 case Dict.get (Bms.key note.ext) state of
                     Just v ->
-                        ( Dict.remove (Bms.key note.ext) state, { note | ext = Long (Bms.key note.ext) (BTime.diffWithMeasureLength mlens v note) } :: notes )
+                        ( Dict.remove (Bms.key note.ext) state, { note | ext = Long (Bms.key note.ext) (TimeObject.diff v note) } :: notes )
 
                     Nothing ->
                         ( state, note :: notes )
