@@ -13,7 +13,6 @@ module Bms.Converter exposing
 
 -}
 
-import BTime
 import Basics.Extra exposing (..)
 import Bms.TimeObject as TimeObject
 import Bms.Types as Bms exposing (Bms, ChartType, Note, NoteType(..), key)
