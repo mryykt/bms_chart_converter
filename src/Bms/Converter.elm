@@ -133,16 +133,19 @@ minDuration =
 
 groupLength : ListNonempty Note -> Float
 groupLength notes =
-    let
-        ( h, t ) =
-            groupRange notes
-    in
-    TimeObject.diff (Nonempty.last notes) (Nonempty.head notes)
+    groupRange notes |> uncurry (flip (-))
 
 
 isOverlappingGroup : ListNonempty Note -> ListNonempty Note -> Bool
 isOverlappingGroup notes1 notes2 =
-    if (Nonempty.head notes1).time > (Nonempty.last notes2).time || (Nonempty.head notes2).time > (Nonempty.last notes1).time then
+    let
+        ( h1, t1 ) =
+            groupRange notes1
+
+        ( h2, t2 ) =
+            groupRange notes2
+    in
+    if h1 > t2 || h2 > t1 then
         False
 
     else
