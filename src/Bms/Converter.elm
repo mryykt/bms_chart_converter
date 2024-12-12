@@ -123,7 +123,7 @@ inscreaseScratch options bms groups =
 
 doujiOshi : ListNonempty Note -> Bool
 doujiOshi =
-    Nonempty.toList >> List.foldl2 (\x y acc -> acc && Maybe.unwrap True (.time >> (/=) x.time) y) True
+    Nonempty.toList >> List.foldl2 (\x y acc -> acc || Maybe.unwrap False (.time >> (==) x.time) y) True
 
 
 minDuration : ListNonempty Note -> Float
