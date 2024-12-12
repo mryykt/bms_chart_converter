@@ -1,21 +1,22 @@
 port module Experimental exposing (..)
 
-import Bms.Converter exposing (groupingNotes)
+import Bms.Converter exposing (Options, convert, defIncreaseScratchOptions, defOptions, groupingNotes)
 import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Types exposing (Bms, RawBms, decodeRawBms, sort)
 import Browser
 import Clustering
-import Clustering.KernelFunction as KernelFunction
 import Css exposing (..)
 import Html.Styled as H exposing (Html, div)
+import Html.Styled.Attributes exposing (css)
 import Html.Styled.Lazy exposing (lazy)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
 import List.Extra as List
 import List.Nonempty as Nonempty
+import Maybe.Extra as Maybe
 import SampleData exposing (..)
-import Svg.Styled.Attributes exposing (css)
+import Task
 
 
 port compileBMS : { name : String, buf : String } -> Cmd msg
@@ -26,7 +27,7 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 type Model
     = Init
-    | Model Bms
+    | Model Options Bms (Maybe Bms)
 
 
 init : () -> ( Model, Cmd Msg )
@@ -38,6 +39,7 @@ init _ =
 
 type Msg
     = LoadBMS (Result Error RawBms)
+    | CompleteConvert Bms
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -49,11 +51,21 @@ update msg model =
                     let
                         data =
                             Load.fromRawData raw
+
+                        options =
+                            { defOptions | inscreaseScratchOptions = Just defIncreaseScratchOptions }
                     in
-                    ( Model data, Cmd.none )
+                    ( Model options data Nothing
+                    , Task.perform
+                        (convert data.chartType options >> CompleteConvert)
+                        (Task.succeed data)
+                    )
 
                 Err _ ->
                     Debug.todo ""
+
+        ( Model options bms Nothing, CompleteConvert converted ) ->
+            ( Model options bms (Just converted), Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -71,18 +83,20 @@ view model =
             div []
                 []
 
-        Model bms ->
+        Model options bms converted ->
             let
                 group =
                     groupingNotes bms.header.waves bms.notes
                         |> List.concatMap Clustering.rough
-                        |> List.concatMap (Clustering.clustering 480 KernelFunction.gauss .time)
+                        |> List.concatMap (Clustering.clustering options.bandWidth options.kernelFunction .time)
 
                 groupedNotes =
                     List.indexedMap (\i notes -> List.map (\note -> { note | value = i }) <| Nonempty.toList notes) group |> List.concat |> sort
             in
             div [ css [ position relative, width (px 900), padding (px 50) ] ]
-                [ lazy Preview.groupedView { bms | notes = groupedNotes } ]
+                [ lazy Preview.groupedView { bms | notes = groupedNotes }
+                , Maybe.unwrap (div [] []) (lazy Preview.view) converted
+                ]
 
 
 main : Program () Model Msg
