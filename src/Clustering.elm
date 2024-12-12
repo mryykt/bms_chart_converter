@@ -29,7 +29,7 @@ clustering bandWidth kernel f xs =
             Nonempty.last times
 
         lmps =
-            localMinimumPoints dens mint maxt 0.1
+            localMinimumPoints dens mint maxt (TimeObject.resolution / 10)
 
         helper t ( group, ungroup ) =
             List.span (f >> (>) t) ungroup |> (\( group_, ungroup_ ) -> ( group ++ [ group_ ], ungroup_ ))
