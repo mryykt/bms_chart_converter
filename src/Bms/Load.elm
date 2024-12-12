@@ -19,7 +19,6 @@ fromRawData { name, headers, mlens, data } =
                 |> List.range 0
                 |> List.scanl (\x acc -> Maybe.unwrap TimeObject.resolution ((*) TimeObject.resolution) (Dict.get x mlens) + acc) 0
                 |> Array.fromList
-                |> Debug.log ""
 
         ( notes, others ) =
             List.partition (\x -> 36 <= x.channel && x.channel < 36 * 3 || 5 * 36 <= x.channel && x.channel < 7 * 36) data
@@ -178,29 +177,29 @@ separeteLn lines =
         f x notes =
             case x.ext of
                 Long _ l ->
-                    g x.time x.measure l x notes
+                    g l x notes
 
                 _ ->
                     x :: notes
 
-        g time measure l note notes =
+        g l note notes =
             let
                 measureStart =
-                    Maybe.withDefault 0 (Array.get measure lines)
+                    Maybe.withDefault 0 (Array.get note.measure lines)
 
                 measureEnd =
-                    Maybe.withDefault (measureStart + TimeObject.resolution) (Array.get (measure + 1) lines)
+                    Maybe.withDefault (measureStart + TimeObject.resolution) (Array.get (note.measure + 1) lines)
             in
-            if l > measureEnd - time then
-                { time = time
-                , measure = measure
+            if l > measureEnd - note.time then
+                { time = note.time
+                , measure = note.measure
                 , value = note.value
-                , ext = Long (Bms.key note.ext) (measureEnd - time)
+                , ext = Long (Bms.key note.ext) (measureEnd - note.time)
                 }
-                    :: g (time + measureEnd - measureStart) (measure + 1) (l - (measureEnd - time)) note notes
+                    :: g (l - (measureEnd - note.time)) { note | time = note.time + measureEnd - measureStart, measure = note.measure + 1 } notes
 
             else
-                { time = time, measure = measure, value = note.value, ext = Long (Bms.key note.ext) l } :: notes
+                { time = note.time, measure = note.measure, value = note.value, ext = Long (Bms.key note.ext) l } :: notes
     in
     List.foldr f [] >> Bms.sort
 
