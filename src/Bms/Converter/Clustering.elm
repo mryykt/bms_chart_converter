@@ -1,4 +1,4 @@
-module Clustering exposing (..)
+module Bms.Converter.Clustering exposing (..)
 
 import Bms.TimeObject as TimeObject
 import Bms.Types exposing (Note)

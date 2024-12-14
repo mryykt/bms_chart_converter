@@ -1,7 +1,7 @@
 module Bms.Converter.Options exposing (..)
 
+import Bms.Converter.Clustering.KernelFunction as Kernel
 import Bms.TimeObject as TimeObject
-import Clustering.KernelFunction as Kernel
 
 
 type alias Options =

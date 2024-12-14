@@ -4,10 +4,10 @@ module Bms.Converter exposing
     )
 
 import Basics.Extra exposing (..)
+import Bms.Converter.Clustering
 import Bms.Converter.Options exposing (IncreaseScratchOptions, Options)
 import Bms.TimeObject as TimeObject
 import Bms.Types as Bms exposing (Bms, ChartType, Note, NoteType(..), key)
-import Clustering
 import Dict exposing (Dict)
 import List.Extra as List
 import List.Extra2 as List
@@ -21,8 +21,8 @@ convert _ options bms =
     let
         groups =
             groupingNotes bms.header.waves bms.notes
-                |> List.andThen Clustering.rough
-                |> List.andThen (Clustering.clustering options.bandWidth options.kernelFunction .time)
+                |> List.andThen Bms.Converter.Clustering.rough
+                |> List.andThen (Bms.Converter.Clustering.clustering options.bandWidth options.kernelFunction .time)
 
         newGroups =
             groups |> Maybe.unwrap identity inscreaseScratch options.inscreaseScratchOptions

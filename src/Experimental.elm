@@ -1,12 +1,12 @@
 port module Experimental exposing (..)
 
 import Bms.Converter exposing (convert, groupingNotes)
+import Bms.Converter.Clustering
 import Bms.Converter.Options exposing (Options, defIncreaseScratchOptions, defOptions)
 import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Types exposing (Bms, RawBms, decodeRawBms, sort)
 import Browser
-import Clustering
 import Css exposing (..)
 import Html.Styled as H exposing (Html, div)
 import Html.Styled.Attributes exposing (css)
@@ -88,8 +88,8 @@ view model =
             let
                 group =
                     groupingNotes bms.header.waves bms.notes
-                        |> List.concatMap Clustering.rough
-                        |> List.concatMap (Clustering.clustering options.bandWidth options.kernelFunction .time)
+                        |> List.concatMap Bms.Converter.Clustering.rough
+                        |> List.concatMap (Bms.Converter.Clustering.clustering options.bandWidth options.kernelFunction .time)
 
                 groupedNotes =
                     List.indexedMap (\i notes -> List.map (\note -> { note | value = i }) <| Nonempty.toList notes) group |> List.concat |> sort

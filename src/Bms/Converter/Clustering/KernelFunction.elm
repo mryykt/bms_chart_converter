@@ -1,4 +1,4 @@
-module Clustering.KernelFunction exposing (..)
+module Bms.Converter.Clustering.KernelFunction exposing (..)
 
 
 gauss : Float -> Float
