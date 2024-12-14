@@ -1,6 +1,7 @@
 port module Experimental exposing (..)
 
-import Bms.Converter exposing (Options, convert, defIncreaseScratchOptions, defOptions, groupingNotes)
+import Bms.Converter exposing (convert, groupingNotes)
+import Bms.Converter.Options exposing (Options, defIncreaseScratchOptions, defOptions)
 import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Types exposing (Bms, RawBms, decodeRawBms, sort)

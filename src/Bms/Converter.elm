@@ -1,23 +1,13 @@
 module Bms.Converter exposing
     ( convert
-    , Options, IncreaseScratchOptions
-    , defOptions, defIncreaseScratchOptions
     , groupingNotes
     )
 
-{-| A converter of bms chart.
-
-@docs convert
-@docs Options, IncreaseScratchOptions
-@docs defOptions, defIncreaseScratchOptions
-
--}
-
 import Basics.Extra exposing (..)
+import Bms.Converter.Options exposing (IncreaseScratchOptions, Options)
 import Bms.TimeObject as TimeObject
 import Bms.Types as Bms exposing (Bms, ChartType, Note, NoteType(..), key)
 import Clustering
-import Clustering.KernelFunction as Kernel
 import Dict exposing (Dict)
 import List.Extra as List
 import List.Extra2 as List
@@ -26,26 +16,8 @@ import List.Nonempty.Extra as Nonempty
 import Maybe.Extra as Maybe
 
 
-type alias Options =
-    { bandWidth : Float, kernelFunction : Float -> Float, inscreaseScratchOptions : Maybe IncreaseScratchOptions }
-
-
-type alias IncreaseScratchOptions =
-    { minDuration : Int }
-
-
-defOptions : Options
-defOptions =
-    { bandWidth = TimeObject.resolution / 2, kernelFunction = Kernel.gauss, inscreaseScratchOptions = Nothing }
-
-
-defIncreaseScratchOptions : IncreaseScratchOptions
-defIncreaseScratchOptions =
-    { minDuration = 16 }
-
-
 convert : ChartType -> Options -> Bms -> Bms
-convert chartType options bms =
+convert _ options bms =
     let
         groups =
             groupingNotes bms.header.waves bms.notes
