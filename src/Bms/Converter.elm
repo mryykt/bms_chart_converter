@@ -83,7 +83,6 @@ inscreaseScratch options groups =
                         && List.all (not << isOverlappingGroup notes) scratchGroups
                 )
                 keyGroups
-                |> Debug.log ""
 
         f ( scratches_, keys_ ) willScratches =
             case willScratches of
