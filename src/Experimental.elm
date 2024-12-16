@@ -3,10 +3,12 @@ port module Experimental exposing (..)
 import Bms.Converter exposing (convert, groupingNotes)
 import Bms.Converter.Clustering
 import Bms.Converter.Options exposing (Options, defIncreaseScratchOptions, defOptions)
+import Bms.Converter.Options.Edit as Options
 import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Types exposing (Bms, RawBms, decodeRawBms, sort)
 import Browser
+import Bulma.Styled.CDN as CDN
 import Css exposing (..)
 import Html.Styled as H exposing (Html, div)
 import Html.Styled.Attributes exposing (css)
@@ -41,6 +43,7 @@ init _ =
 type Msg
     = LoadBMS (Result Error RawBms)
     | CompleteConvert Bms
+    | EditOptions (Options.Msg Options)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -67,6 +70,9 @@ update msg model =
 
         ( Model options bms Nothing, CompleteConvert converted ) ->
             ( Model options bms (Just converted), Cmd.none )
+
+        ( Model options bms converted, EditOptions msg_ ) ->
+            ( Model (Options.update msg_ options) bms converted, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -95,7 +101,9 @@ view model =
                     List.indexedMap (\i notes -> List.map (\note -> { note | value = i }) <| Nonempty.toList notes) group |> List.concat |> sort
             in
             div [ css [ position relative, width (px 900), padding (px 50) ] ]
-                [ lazy Preview.groupedView { bms | notes = groupedNotes }
+                [ CDN.stylesheet
+                , lazy Preview.groupedView { bms | notes = groupedNotes }
+                , H.map EditOptions <| Options.view options
                 , Maybe.unwrap (div [] []) (lazy Preview.view) converted
                 ]
 
