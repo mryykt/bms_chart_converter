@@ -1,13 +1,15 @@
 module Bms.Converter.Options.Edit exposing (..)
 
+import Basics.Extra exposing (flip)
 import Bms.Converter.Clustering.KernelFunction as Kernel
 import Bms.Converter.Options exposing (Options, defOptions)
 import Bulma.Styled.Form as Form exposing (Control, Field, controlSelect, controlSelectModifiers)
-import Bulma.Styled.Modifiers exposing (standard)
+import Bulma.Styled.Modifiers exposing (left, standard)
 import Dict exposing (Dict)
+import Ghost exposing (Ghost(..))
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attributes
-import Html.Styled.Events exposing (onInput)
+import Html.Styled.Events exposing (onCheck, onInput)
 import List.Extra as List
 import Maybe.Extra as Maybe
 
@@ -41,7 +43,7 @@ update msg options =
 
 view : Options -> Html (Msg Options)
 view options =
-    Html.div []
+    Form.field []
         [ float "test" { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } } options
         , select "kernel function"
             (Dict.fromList
@@ -54,7 +56,41 @@ view options =
             )
             { getter = .kernelFunction, setter = \x y -> { y | kernelFunction = x } }
             options
+        , ghost "increase scratch"
+            { getter = .inscreaseScratchOptions, setter = \x y -> { y | inscreaseScratchOptions = x } }
+            options
+            [ int "min duration" { getter = .minDuration, setter = \x y -> { y | minDuration = x } } ]
         ]
+
+
+ghost : String -> Lens a (Ghost b) -> a -> List (b -> Field (Msg b)) -> Field (Msg a)
+ghost l { getter, setter } v form =
+    let
+        f : Msg b -> Msg a
+        f msg =
+            case msg of
+                Default ->
+                    Default
+
+                Update setter_ ->
+                    Update (\p -> setter (Ghost.map setter_ <| getter p) p)
+    in
+    field l <|
+        Form.fields left
+            []
+            [ checkbox_ (\b -> Update (setter <| Ghost.fromBool (getter v) b))
+            , Html.map f <|
+                (\gb ->
+                    case gb of
+                        Being x ->
+                            Form.field [ Attributes.disabled False ] <| List.map ((|>) x) form
+
+                        Ghost x ->
+                            Form.field [ Attributes.disabled True ] <| List.map ((|>) x) form
+                )
+                <|
+                    getter v
+            ]
 
 
 text : String -> Lens a String -> a -> Field (Msg a)
@@ -80,6 +116,16 @@ float l { getter, setter } =
         { getter = getter >> String.fromFloat
         , setter = setter << Maybe.withDefault 0 << String.toFloat
         }
+
+
+checkbox : String -> Lens a Bool -> a -> Field (Msg a)
+checkbox l { getter, setter } v =
+    field l <| checkbox_ (Update << setter)
+
+
+checkbox_ : (Bool -> msg) -> Field msg
+checkbox_ msg =
+    Form.controlCheckBox False [] [] [ onCheck msg ] []
 
 
 select : String -> Dict String b -> Lens a b -> a -> Field (Msg a)
