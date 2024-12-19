@@ -1,6 +1,33 @@
 module Bms.Converter.Clustering.KernelFunction exposing (..)
 
 
+type KernelFunction
+    = Gauss
+    | Tophat
+    | Linear
+    | Exp
+    | Epanechnikov
+
+
+fromVariant : KernelFunction -> (Float -> Float)
+fromVariant name =
+    case name of
+        Gauss ->
+            gauss
+
+        Tophat ->
+            tophat
+
+        Linear ->
+            linear
+
+        Exp ->
+            exp
+
+        Epanechnikov ->
+            epanechnikov
+
+
 gauss : Float -> Float
 gauss x =
     1 / sqrt (2 * pi) * e ^ (-x * x / 2)

@@ -1,5 +1,6 @@
 module Bms.Converter.Clustering exposing (..)
 
+import Bms.Converter.Clustering.KernelFunction as Kernel exposing (KernelFunction)
 import Bms.TimeObject as TimeObject
 import Bms.Types exposing (Note)
 import List.Extra as List
@@ -13,14 +14,14 @@ rough notes =
     Nonempty.groupWhile (\a b -> TimeObject.diff b a < TimeObject.resolution) notes |> Nonempty.toList
 
 
-clustering : Float -> (Float -> Float) -> (a -> Float) -> ListNonempty a -> List (ListNonempty a)
+clustering : Float -> KernelFunction -> (a -> Float) -> ListNonempty a -> List (ListNonempty a)
 clustering bandWidth kernel f xs =
     let
         times =
             Nonempty.map f xs
 
         dens =
-            density kernel bandWidth <| Nonempty.toList times
+            density (Kernel.fromVariant kernel) bandWidth <| Nonempty.toList times
 
         mint =
             Nonempty.head times

@@ -45,11 +45,11 @@ view options =
         [ float "band width" { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } } options
         , select "kernel function"
             (Dict.fromList
-                [ ( "Gauss", Kernel.gauss )
-                , ( "Linear", Kernel.linear )
-                , ( "Exp", Kernel.exp )
-                , ( "Tophat", Kernel.tophat )
-                , ( "Epanechnikov", Kernel.epanechnikov )
+                [ ( "Gauss", Kernel.Gauss )
+                , ( "Linear", Kernel.Linear )
+                , ( "Exp", Kernel.Exp )
+                , ( "Tophat", Kernel.Tophat )
+                , ( "Epanechnikov", Kernel.Epanechnikov )
                 ]
             )
             { getter = .kernelFunction, setter = \x y -> { y | kernelFunction = x } }
@@ -146,7 +146,7 @@ select : String -> Dict String b -> Lens a b -> a -> Field (Msg a)
 select l dict { getter, setter } v =
     let
         option val =
-            Html.option [ Attributes.value val ] [ Html.text val ]
+            Html.option [ Attributes.value val, Attributes.selected (Dict.get val dict |> Maybe.unwrap False ((==) (getter v))) ] [ Html.text val ]
 
         get k =
             Dict.get k dict |> Maybe.withDefault (getter v)
