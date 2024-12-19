@@ -1,12 +1,10 @@
 module Bms.Converter.Options.Edit exposing (..)
 
-import Basics.Extra exposing (flip)
 import Bms.Converter.Clustering.KernelFunction as Kernel
-import Bms.Converter.Options exposing (Options, defOptions)
+import Bms.Converter.Options exposing (Optional, Options, defOptions)
 import Bulma.Styled.Form as Form exposing (Control, Field, controlSelect, controlSelectModifiers)
-import Bulma.Styled.Modifiers exposing (left, standard)
+import Bulma.Styled.Modifiers exposing (standard)
 import Dict exposing (Dict)
-import Ghost exposing (Ghost(..))
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attributes
 import Html.Styled.Events exposing (onCheck, onInput)
@@ -44,7 +42,7 @@ update msg options =
 view : Options -> Html (Msg Options)
 view options =
     Form.field []
-        [ float "test" { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } } options
+        [ float "band width" { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } } options
         , select "kernel function"
             (Dict.fromList
                 [ ( "Gauss", Kernel.gauss )
@@ -56,15 +54,15 @@ view options =
             )
             { getter = .kernelFunction, setter = \x y -> { y | kernelFunction = x } }
             options
-        , ghost "increase scratch"
+        , optional "increase scratch"
             { getter = .inscreaseScratchOptions, setter = \x y -> { y | inscreaseScratchOptions = x } }
             options
             [ int "min duration" { getter = .minDuration, setter = \x y -> { y | minDuration = x } } ]
         ]
 
 
-ghost : String -> Lens a (Ghost b) -> a -> List (b -> Field (Msg b)) -> Field (Msg a)
-ghost l { getter, setter } v form =
+optional : String -> Lens a (Optional b) -> a -> List (b -> Field (Msg b)) -> Field (Msg a)
+optional l { getter, setter } v forms =
     let
         f : Msg b -> Msg a
         f msg =
@@ -73,20 +71,36 @@ ghost l { getter, setter } v form =
                     Default
 
                 Update setter_ ->
-                    Update (\p -> setter (Ghost.map setter_ <| getter p) p)
+                    Update
+                        (setter
+                            (let
+                                y =
+                                    getter v
+                             in
+                             { y | value = setter_ y.value }
+                            )
+                        )
     in
     field l <|
-        Form.fields left
+        Form.field
             []
-            [ checkbox_ (\b -> Update (setter <| Ghost.fromBool (getter v) b))
+            [ checkbox_ (getter v).enabled
+                (\b ->
+                    Update
+                        (\y ->
+                            setter
+                                (let
+                                    y_ =
+                                        getter y
+                                 in
+                                 { y_ | enabled = b }
+                                )
+                                y
+                        )
+                )
             , Html.map f <|
-                (\gb ->
-                    case gb of
-                        Being x ->
-                            Form.field [ Attributes.disabled False ] <| List.map ((|>) x) form
-
-                        Ghost x ->
-                            Form.field [ Attributes.disabled True ] <| List.map ((|>) x) form
+                (\opt ->
+                    Html.fieldset [ Attributes.disabled <| not opt.enabled ] <| List.map ((|>) opt.value) forms
                 )
                 <|
                     getter v
@@ -120,12 +134,12 @@ float l { getter, setter } =
 
 checkbox : String -> Lens a Bool -> a -> Field (Msg a)
 checkbox l { getter, setter } v =
-    field l <| checkbox_ (Update << setter)
+    field l <| checkbox_ (getter v) (Update << setter)
 
 
-checkbox_ : (Bool -> msg) -> Field msg
-checkbox_ msg =
-    Form.controlCheckBox False [] [] [ onCheck msg ] []
+checkbox_ : Bool -> (Bool -> msg) -> Field msg
+checkbox_ checked msg =
+    Form.controlCheckBox False [] [] [ onCheck msg, Attributes.checked checked ] []
 
 
 select : String -> Dict String b -> Lens a b -> a -> Field (Msg a)

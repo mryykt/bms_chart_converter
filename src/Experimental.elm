@@ -10,7 +10,6 @@ import Bms.Types exposing (Bms, RawBms, decodeRawBms, sort)
 import Browser
 import Bulma.Styled.CDN as CDN
 import Css exposing (..)
-import Ghost exposing (Ghost(..))
 import Html.Styled as H exposing (Html, div)
 import Html.Styled.Attributes exposing (css)
 import Html.Styled.Lazy exposing (lazy)
@@ -58,7 +57,7 @@ update msg model =
                             Load.fromRawData raw
 
                         options =
-                            { defOptions | inscreaseScratchOptions = Being defIncreaseScratchOptions }
+                            { defOptions | inscreaseScratchOptions = { value = defIncreaseScratchOptions, enabled = True } }
                     in
                     ( Model options data Nothing
                     , Task.perform
