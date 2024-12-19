@@ -170,5 +170,5 @@ field l control =
                 [ Html.text l
                 ]
             ]
-        , Form.control Form.controlModifiers [] [ control ]
+        , Form.fieldBody [] [ Form.field [] [ control ] ]
         ]
