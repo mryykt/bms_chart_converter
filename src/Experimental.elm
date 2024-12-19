@@ -99,7 +99,7 @@ view model =
                 groupedNotes =
                     List.indexedMap (\i notes -> List.map (\note -> { note | value = i }) <| Nonempty.toList notes) group |> List.concat |> sort
             in
-            div [ css [ position relative, width (px 900), padding (px 50) ] ]
+            div [ css [ position relative, overflow scroll, padding (px 50) ] ]
                 [ CDN.stylesheet
                 , lazy Preview.groupedView { bms | notes = groupedNotes }
                 , H.map EditOptions <| Options.view options
