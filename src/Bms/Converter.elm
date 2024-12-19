@@ -26,10 +26,10 @@ convert _ options bms =
         newGroups =
             groups
                 |> (if options.inscreaseScratchOptions.enabled then
-                        identity
+                        inscreaseScratch options.inscreaseScratchOptions.value
 
                     else
-                        inscreaseScratch options.inscreaseScratchOptions.value
+                        identity
                    )
     in
     { bms | notes = List.map Nonempty.toList newGroups |> List.concat |> Bms.sort }
