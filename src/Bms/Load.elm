@@ -15,7 +15,8 @@ fromRawData { name, headers, mlens, data } =
     let
         lines =
             List.maximumBy .measure data
-                |> Maybe.unwrap 1 .measure
+                |> Maybe.map .measure
+                |> Maybe.unwrap 1 (max (Dict.keys mlens |> List.last |> Maybe.map ((+) 1) |> Maybe.withDefault 0))
                 |> List.range 0
                 |> List.scanl (\x acc -> Maybe.unwrap TimeObject.resolution ((*) TimeObject.resolution) (Dict.get x mlens) + acc) 0
                 |> Array.fromList
