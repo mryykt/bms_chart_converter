@@ -94,7 +94,6 @@ view model =
             let
                 group =
                     groupingNotes bms.header.waves bms.notes
-                        |> List.concatMap Bms.Converter.Clustering.rough
                         |> List.concatMap (Bms.Converter.Clustering.clustering options.bandWidth options.kernelFunction .time)
 
                 groupedNotes =

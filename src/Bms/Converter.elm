@@ -21,7 +21,6 @@ convert _ options bms =
     let
         groups =
             groupingNotes bms.header.waves bms.notes
-                |> List.andThen Bms.Converter.Clustering.rough
                 |> List.andThen (Bms.Converter.Clustering.clustering options.bandWidth options.kernelFunction .time)
 
         newGroups =

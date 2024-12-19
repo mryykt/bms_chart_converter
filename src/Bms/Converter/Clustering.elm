@@ -2,16 +2,10 @@ module Bms.Converter.Clustering exposing (..)
 
 import Bms.Converter.Clustering.KernelFunction as Kernel exposing (KernelFunction)
 import Bms.TimeObject as TimeObject
-import Bms.Types exposing (Note)
 import List.Extra as List
 import List.Extra2 as List
 import List.Nonempty as Nonempty exposing (ListNonempty)
 import List.Nonempty.Extra as Nonempty
-
-
-rough : ListNonempty Note -> List (ListNonempty Note)
-rough notes =
-    Nonempty.groupWhile (\a b -> TimeObject.diff b a < TimeObject.resolution) notes |> Nonempty.toList
 
 
 clustering : Float -> KernelFunction -> (a -> Float) -> ListNonempty a -> List (ListNonempty a)
