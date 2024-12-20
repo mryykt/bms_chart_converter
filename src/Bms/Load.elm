@@ -25,14 +25,28 @@ fromRawData { name, headers, mlens, data } =
             List.partition (\x -> 36 <= x.channel && x.channel < 36 * 3 || 5 * 36 <= x.channel && x.channel < 7 * 36) data
 
         notes_ =
-            List.map (\x -> { time = TimeObject.fromMeasureAndFraction lines x.measure x.fraction, measure = x.measure, value = base 36 x.value, ext = toNoteType x.channel }) notes
+            List.map
+                (\x ->
+                    let
+                        value =
+                            base 36 x.value
+                    in
+                    { time = TimeObject.fromMeasureAndFraction lines x.measure x.fraction
+                    , measure = x.measure
+                    , value = value
+                    , ext =
+                        toNoteType x.channel
+                            value
+                    }
+                )
+                notes
 
-        toNoteType ch =
+        toNoteType ch v =
             if 36 <= ch && ch < 3 * 36 then
                 Normal <| ch - 36
 
             else if 5 * 36 <= ch && ch < 7 * 36 then
-                Long (ch - 5 * 36) 0
+                Long (ch - 5 * 36) 0 v
 
             else
                 Normal 0
@@ -177,13 +191,13 @@ separeteLn lines =
     let
         f x notes =
             case x.ext of
-                Long _ l ->
-                    g l x notes
+                Long _ l tv ->
+                    g l tv x notes
 
                 _ ->
                     x :: notes
 
-        g l note notes =
+        g l tv note notes =
             let
                 measureStart =
                     Maybe.withDefault 0 (Array.get note.measure lines)
@@ -195,12 +209,12 @@ separeteLn lines =
                 { time = note.time
                 , measure = note.measure
                 , value = note.value
-                , ext = Long (Bms.key note.ext) (measureEnd - note.time)
+                , ext = Long (Bms.key note.ext) (measureEnd - note.time) tv
                 }
-                    :: g (l - (measureEnd - note.time)) { note | time = note.time + measureEnd - measureStart, measure = note.measure + 1 } notes
+                    :: g (l - (measureEnd - note.time)) tv { note | time = note.time + measureEnd - measureStart, measure = note.measure + 1 } notes
 
             else
-                { time = note.time, measure = note.measure, value = note.value, ext = Long (Bms.key note.ext) l } :: notes
+                { time = note.time, measure = note.measure, value = note.value, ext = Long (Bms.key note.ext) l tv } :: notes
     in
     List.foldr f [] >> Bms.sort
 
@@ -215,14 +229,14 @@ ln1 =
     let
         f note ( state, notes ) =
             case note.ext of
-                Long k l ->
+                Long k l tv ->
                     if l == 0 then
                         case Dict.get k state of
-                            Just v ->
-                                ( Dict.remove k state, { note | ext = Long k (TimeObject.diff v note) } :: notes )
+                            Just ( v, tv_ ) ->
+                                ( Dict.remove k state, { note | ext = Long k (TimeObject.diff v note) tv_ } :: notes )
 
                             Nothing ->
-                                ( Dict.insert k { time = note.time, measure = note.measure } state, note :: notes )
+                                ( Dict.insert k ( { time = note.time, measure = note.measure }, tv ) state, note :: notes )
 
                     else
                         ( state, note :: notes )
@@ -243,7 +257,7 @@ ln2 lnobj =
             else
                 case Dict.get (Bms.key note.ext) state of
                     Just v ->
-                        ( Dict.remove (Bms.key note.ext) state, { note | ext = Long (Bms.key note.ext) (TimeObject.diff v note) } :: notes )
+                        ( Dict.remove (Bms.key note.ext) state, { note | ext = Long (Bms.key note.ext) (TimeObject.diff v note) lnobj } :: notes )
 
                     Nothing ->
                         ( state, note :: notes )

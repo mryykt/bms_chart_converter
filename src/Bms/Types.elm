@@ -38,7 +38,7 @@ type alias Note =
 
 type NoteType
     = Normal Int
-    | Long Int Float
+    | Long Int Float Int
 
 
 key : NoteType -> Int
@@ -47,7 +47,7 @@ key nt =
         Normal k ->
             k
 
-        Long k _ ->
+        Long k _ _ ->
             k
 
 
@@ -57,8 +57,8 @@ setKey k nt =
         Normal _ ->
             Normal k
 
-        Long _ l ->
-            Long k l
+        Long _ l t ->
+            Long k l t
 
 
 type alias RawBms =

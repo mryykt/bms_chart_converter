@@ -146,7 +146,7 @@ lane isGrouped pSide bms ( k, notes ) =
                             , backgroundColor (c n)
                             ]
 
-                        Long _ l ->
+                        Long _ l _ ->
                             [ position absolute
                             , bottom (pct (100 * TimeObject.getFraction bms.lines n))
                             , width (pct 100)

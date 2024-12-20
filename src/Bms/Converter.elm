@@ -139,7 +139,7 @@ groupRange =
     let
         lastTimeOfNote note =
             case note.ext of
-                Long _ l ->
+                Long _ l _ ->
                     note.time + l
 
                 _ ->
