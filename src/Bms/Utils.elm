@@ -3,6 +3,7 @@ module Bms.Utils exposing (..)
 import Array exposing (Array)
 import Basics.Extra2 exposing (..)
 import Maybe.Extra as Maybe
+import String.Extra as String
 
 
 base : Int -> String -> Int
@@ -28,6 +29,8 @@ base n =
     String.foldl f 0
 
 
+{-| 2桁のものしか考えない
+-}
 baseToString : Int -> Int -> String
 baseToString n x =
     let
@@ -38,11 +41,7 @@ baseToString n x =
             else
                 String.fromChar <| Char.fromCode <| Char.toCode 'a' + (d - 10)
     in
-    if x >= n then
-        baseToString n (x // n) ++ f (modBy n x)
-
-    else
-        f x
+    f (x // n) ++ f (modBy n x)
 
 
 measureLength : Array Float -> Int -> Float

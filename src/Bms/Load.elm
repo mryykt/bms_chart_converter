@@ -142,7 +142,7 @@ ln1 =
                                 ( Dict.remove k state, { note | ext = Long k (TimeObject.diff v note) tv_ } :: notes )
 
                             Nothing ->
-                                ( Dict.insert k ( { time = note.time, measure = note.measure }, tv ) state, note :: notes )
+                                ( Dict.insert k ( { time = note.time, measure = note.measure }, tv ) state, notes )
 
                     else
                         ( state, note :: notes )

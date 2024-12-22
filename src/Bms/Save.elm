@@ -44,6 +44,9 @@ toRawData bms =
                                    else
                                     5 * 36
                                   )
+
+                        back =
+                            TimeObject.add bms.lines { note | time = note.time } l
                     in
                     [ { measure = note.measure
                       , fraction = TimeObject.getFraction bms.lines note
@@ -51,8 +54,8 @@ toRawData bms =
                       , channel =
                             channel
                       }
-                    , { measure = note.measure
-                      , fraction = TimeObject.getFraction bms.lines { note | time = note.time + l }
+                    , { measure = back.measure
+                      , fraction = TimeObject.getFraction bms.lines back
                       , value = baseToString 36 tv
                       , channel =
                             channel
