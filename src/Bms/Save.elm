@@ -51,14 +51,12 @@ toRawData bms =
                     [ { measure = note.measure
                       , fraction = TimeObject.getFraction bms.lines note
                       , value = baseToString 36 note.value
-                      , channel =
-                            channel
+                      , channel = channel
                       }
                     , { measure = back.measure
                       , fraction = TimeObject.getFraction bms.lines back
                       , value = baseToString 36 tv
-                      , channel =
-                            channel
+                      , channel = channel
                       }
                     ]
 
