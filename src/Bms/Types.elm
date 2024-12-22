@@ -1,10 +1,12 @@
-module Bms.Types exposing (..)
+module Bms.Types exposing (Bms, ChartType(..), Headers, Note, NoteType(..), Object, RawBms, RawObject, adjustKey, decodeRawBms, key, reverseAdjustKey, setKey, sort)
 
 import Array exposing (Array)
 import Bms.TimeObject exposing (TimeObject)
 import Bms.Utils exposing (base)
 import Dict exposing (Dict)
 import Json.Decode as D exposing (Decoder)
+import List.Extra as List
+import Maybe.Extra as Maybe
 import Tuple
 
 
@@ -129,3 +131,74 @@ decodeRawObject =
 sort : List (Object x v) -> List (Object x v)
 sort =
     List.sortBy .time
+
+
+adjustKey : ChartType -> Int -> Int
+adjustKey ct k =
+    let
+        get n dict =
+            List.find (Tuple.first >> (==) n) dict |> Maybe.unwrap n Tuple.second
+    in
+    case ct of
+        Key7 ->
+            get k key7
+
+        Key5 ->
+            get k key5
+
+        Key9 ->
+            get k key9
+
+        Key14 ->
+            get k key14
+
+        Key10 ->
+            get k key10
+
+
+reverseAdjustKey : ChartType -> Int -> Int
+reverseAdjustKey ct k =
+    let
+        get n dict =
+            List.find (Tuple.second >> (==) n) dict |> Maybe.unwrap n Tuple.first
+    in
+    case ct of
+        Key7 ->
+            get k key7
+
+        Key5 ->
+            get k key5
+
+        Key9 ->
+            get k key9
+
+        Key14 ->
+            get k key14
+
+        Key10 ->
+            get k key10
+
+
+key7 : List ( Int, Int )
+key7 =
+    [ ( 6, 0 ), ( 8, 6 ), ( 9, 7 ) ]
+
+
+key5 : List ( Int, Int )
+key5 =
+    [ ( 6, 0 ) ]
+
+
+key9 : List ( Int, Int )
+key9 =
+    [ ( 38, 6 ), ( 39, 7 ), ( 40, 8 ), ( 41, 9 ), ( 8, 6 ), ( 9, 7 ), ( 6, 8 ), ( 7, 9 ) ]
+
+
+key14 : List ( Int, Int )
+key14 =
+    key7 ++ [ ( 42, 36 ), ( 44, 42 ), ( 45, 43 ) ]
+
+
+key10 : List ( Int, Int )
+key10 =
+    key5 ++ [ ( 42, 36 ) ]
