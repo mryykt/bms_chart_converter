@@ -28,6 +28,23 @@ base n =
     String.foldl f 0
 
 
+baseToString : Int -> Int -> String
+baseToString n x =
+    let
+        f d =
+            if 0 <= d && d <= 9 then
+                String.fromInt d
+
+            else
+                String.fromChar <| Char.fromCode <| Char.toCode 'a' + (d - 10)
+    in
+    if x >= n then
+        baseToString n (x // n) ++ f (modBy n x)
+
+    else
+        f x
+
+
 measureLength : Array Float -> Int -> Float
 measureLength lines measure =
     Maybe.map2 (-) (Array.get (measure + 1) lines) (Array.get measure lines)
