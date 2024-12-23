@@ -1,11 +1,88 @@
-module Bms.Save exposing (..)
+module Bms.Save exposing (save, toRawData)
 
 import Array
+import Basics.Extra exposing (..)
 import Bms.TimeObject as TimeObject
 import Bms.Types as Bms exposing (..)
 import Bms.Utils exposing (..)
-import Dict
+import Dict exposing (Dict)
 import List.Extra as List
+import List.Extra2 as List
+import List.Nonempty as Nonempty exposing (ListNonempty)
+import List.Nonempty.Extra as Nonempty
+
+
+save : RawBms -> String
+save bms =
+    let
+        groupedByMeasure =
+            bms.data
+                |> List.sortBy .measure
+                |> Nonempty.groupWhileList (\a b -> a.measure == b.measure)
+    in
+    List.map oneMeasure groupedByMeasure |> String.join "\n\n"
+
+
+oneMeasure : ListNonempty RawObject -> String
+oneMeasure =
+    Nonempty.sortBy .channel
+        >> Nonempty.groupWhile (\a b -> a.channel == b.channel)
+        >> Nonempty.map (\objs -> oneChannel (Nonempty.head objs).measure (Nonempty.head objs).channel objs)
+        >> Nonempty.toList
+        >> String.join "\n"
+
+
+oneChannel : Int -> Int -> ListNonempty RawObject -> String
+oneChannel measure channel =
+    let
+        f ls =
+            case ls of
+                ( obj, { denominator, numerator } ) :: ls_ ->
+                    let
+                        ( objs, rest ) =
+                            List.partition (\( _, r ) -> modBy r.denominator denominator == 0) ls_
+                                |> (\( true, false ) ->
+                                        List.foldr
+                                            (\o ( ts, fs ) ->
+                                                if List.filter (Tuple.second >> (==) (Tuple.second o)) ts /= [] then
+                                                    ( ts, o :: fs )
+
+                                                else
+                                                    ( o :: ts, fs )
+                                            )
+                                            ( [], false )
+                                            true
+                                   )
+                    in
+                    ( denominator
+                    , Dict.fromList <|
+                        ( numerator, obj.value )
+                            :: List.map
+                                (\( o, r ) ->
+                                    ( r.numerator * (denominator // r.denominator), o.value )
+                                )
+                                objs
+                    )
+                        :: f rest
+
+                [] ->
+                    []
+    in
+    Nonempty.map (\obj -> ( obj, toRatio obj.fraction ))
+        >> Nonempty.sortBy (Tuple.second >> .denominator >> negate)
+        >> Nonempty.toList
+        >> f
+        >> List.map (uncurry (oneLine measure channel))
+        >> String.join "\n"
+
+
+oneLine : Int -> Int -> Int -> Dict Int String -> String
+oneLine measure channel split datas =
+    "#"
+        ++ String.padLeft 3 '0' (String.fromInt measure)
+        ++ baseToString 36 channel
+        ++ ":"
+        ++ String.concat (List.map (flip Dict.get datas >> Maybe.withDefault "00") (List.range 0 <| split - 1))
 
 
 toRawData : Bms -> RawBms
