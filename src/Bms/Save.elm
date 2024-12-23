@@ -20,7 +20,7 @@ save bms =
                 |> List.sortBy .measure
                 |> Nonempty.groupWhileList (\a b -> a.measure == b.measure)
     in
-    List.map oneMeasure groupedByMeasure |> String.join "\n\n"
+    List.map oneMeasure groupedByMeasure |> String.join "\u{000D}\n\u{000D}\n"
 
 
 oneMeasure : ListNonempty RawObject -> String
@@ -29,12 +29,13 @@ oneMeasure =
         >> Nonempty.groupWhile (\a b -> a.channel == b.channel)
         >> Nonempty.map (\objs -> oneChannel (Nonempty.head objs).measure (Nonempty.head objs).channel objs)
         >> Nonempty.toList
-        >> String.join "\n"
+        >> String.join "\u{000D}\n"
 
 
 oneChannel : Int -> Int -> ListNonempty RawObject -> String
 oneChannel measure channel =
     let
+        -- TODO: 要改善
         f ls =
             case ls of
                 ( obj, { denominator, numerator } ) :: ls_ ->
@@ -44,11 +45,15 @@ oneChannel measure channel =
                                 |> (\( true, false ) ->
                                         List.foldr
                                             (\o ( ts, fs ) ->
-                                                if List.filter (Tuple.second >> (==) (Tuple.second o)) ts /= [] then
-                                                    ( ts, o :: fs )
+                                                if
+                                                    List.all (Tuple.second >> (/=) (Tuple.second o)) ts
+                                                        && Tuple.second o
+                                                        /= { denominator = denominator, numerator = numerator }
+                                                then
+                                                    ( o :: ts, fs )
 
                                                 else
-                                                    ( o :: ts, fs )
+                                                    ( ts, o :: fs )
                                             )
                                             ( [], false )
                                             true
@@ -63,7 +68,7 @@ oneChannel measure channel =
                                 )
                                 objs
                     )
-                        :: f rest
+                        :: f (List.sortBy (Tuple.second >> .denominator >> negate) rest)
 
                 [] ->
                     []
@@ -73,7 +78,7 @@ oneChannel measure channel =
         >> Nonempty.toList
         >> f
         >> List.map (uncurry (oneLine measure channel))
-        >> String.join "\n"
+        >> String.join "\u{000D}\n"
 
 
 oneLine : Int -> Int -> Int -> Dict Int String -> String
