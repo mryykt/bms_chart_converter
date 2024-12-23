@@ -1,7 +1,7 @@
 module BmsTest exposing (..)
 
 import Bms.Load exposing (fromRawData)
-import Bms.Save exposing (toRawData)
+import Bms.Save exposing (save, toRawData)
 import Bms.Utils exposing (base)
 import Dict
 import Expect
@@ -19,12 +19,12 @@ bmsTest =
                 [ -- Normal notes(1 key)
                   { measure = 1
                   , fraction = 0
-                  , value = "00"
+                  , value = "01"
                   , channel = 36 + 1
                   }
                 , { measure = 1
                   , fraction = 0.5
-                  , value = "00"
+                  , value = "02"
                   , channel = 36 + 1
                   }
                 , { measure = 2
@@ -34,12 +34,12 @@ bmsTest =
                   }
                 , { measure = 2
                   , fraction = 0.5
-                  , value = "00"
+                  , value = "01"
                   , channel = 36 + 1
                   }
                 , { measure = 2
                   , fraction = 0.75
-                  , value = "00"
+                  , value = "02"
                   , channel = 36 + 1
                   }
 
@@ -63,13 +63,25 @@ bmsTest =
                   }
                 , { measure = 2
                   , fraction = 0.25
-                  , value = "00"
+                  , value = "01"
                   , channel = 36 + 5
                   }
                 , { measure = 3
                   , fraction = 0.75
                   , value = "zz"
                   , channel = 36 + 4
+                  }
+
+                -- BGM
+                , { measure = 4
+                  , fraction = 0.5
+                  , value = "55"
+                  , channel = 1
+                  }
+                , { measure = 4
+                  , fraction = 0.5
+                  , value = "55"
+                  , channel = 1
                   }
                 ]
             }
@@ -92,4 +104,17 @@ bmsTest =
         [ test "rawBms == toRawData (fromRawData rawBms)" <|
             \_ ->
                 Expect.equal (sort testBms.data) (sort (toRawData <| fromRawData testBms).data)
+        , test "save bms" <|
+            \_ -> Expect.equal (save testBms) <| """#00111:0102
+#00114:00000044
+#00152:00220000
+
+#00211:11000102
+#00215:00010000
+
+#00314:000000zz
+#00352:33
+
+#00401:0055
+#00401:0055"""
         ]
