@@ -2,6 +2,8 @@ module Bms.Utils exposing (..)
 
 import Array exposing (Array)
 import Basics.Extra2 exposing (..)
+import List.Nonempty as Nonempty
+import List.Nonempty.Extra as Nonempty
 import Maybe.Extra as Maybe
 import String.Extra as String
 
@@ -42,6 +44,28 @@ baseToString n x =
                 String.fromChar <| Char.fromCode <| Char.toCode 'a' + (d - 10)
     in
     f (x // n) ++ f (modBy n x)
+
+
+toRatio : Float -> { denominator : Int, numerator : Int }
+toRatio x =
+    let
+        helper r =
+            let
+                x_ =
+                    toFloat r.numerator / toFloat r.denominator
+            in
+            if x_ == x || r.denominator == 192 then
+                r
+
+            else
+                helper <|
+                    Nonempty.minimumBy (\v -> abs (toFloat v.numerator / toFloat v.denominator - x)) <|
+                        Nonempty.fromPair { denominator = r.denominator + 1, numerator = r.numerator - 1 }
+                            [ { denominator = r.denominator + 1, numerator = r.numerator }
+                            , { denominator = r.denominator + 1, numerator = r.numerator + 1 }
+                            ]
+    in
+    helper { denominator = 1, numerator = 0 }
 
 
 measureLength : Array Float -> Int -> Float
