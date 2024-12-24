@@ -11,7 +11,7 @@ import String.Extra as String
 
 
 fromRawData : RawBms -> Bms
-fromRawData { name, headers, mlens, data } =
+fromRawData { name, header, mlens, data } =
     let
         lines =
             List.maximumBy .measure data
@@ -51,6 +51,13 @@ fromRawData { name, headers, mlens, data } =
             else
                 Normal 0
 
+        bpm =
+            Dict.get "bpm" header
+                |> Maybe.andThen List.last
+                |> Maybe.andThen
+                    String.toFloat
+                |> Maybe.withDefault 130
+
         chartType =
             let
                 maxKey =
@@ -74,11 +81,23 @@ fromRawData { name, headers, mlens, data } =
 
             else
                 Key5
+
+        lnobj =
+            Dict.get "lnobj" header |> Maybe.andThen List.last |> Maybe.map (base 36)
+
+        waves =
+            Dict.filter (\k _ -> String.startsWith "wav" k) header
+                |> Dict.toList
+                |> List.filterMap (\( k, v ) -> Maybe.map (Tuple.pair <| base 36 (String.dropLeft 3 k)) <| List.last v)
+                |> Dict.fromList
     in
     { chartType = chartType
-    , header = headers
+    , header = header
+    , bpm = bpm
+    , lnobj = lnobj
+    , waves = waves
     , lines = lines
-    , notes = Maybe.unwrap identity ln2 headers.lnobj <| ln1 <| List.map (adjustKey chartType) notes_
+    , notes = Maybe.unwrap identity ln2 lnobj <| ln1 <| List.map (adjustKey chartType) notes_
     , others = others
     }
 

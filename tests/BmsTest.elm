@@ -2,7 +2,6 @@ module BmsTest exposing (..)
 
 import Bms.Load exposing (fromRawData)
 import Bms.Save exposing (save, toRawData)
-import Bms.Utils exposing (base)
 import Dict
 import Expect
 import Test exposing (..)
@@ -13,7 +12,7 @@ bmsTest =
     let
         testBms =
             { name = ""
-            , headers = { bpm = 130, lnobj = Just (base 36 "zz"), waves = Dict.empty }
+            , header = Dict.fromList [ ( "lnobj", [ "zz" ] ) ]
             , mlens = Dict.fromList [ ( 2, 0.5 ) ]
             , data =
                 [ -- Normal notes(1 key)

@@ -1,4 +1,4 @@
-module Bms.Types exposing (Bms, ChartType(..), Headers, Note, NoteType(..), Object, RawBms, RawObject, adjustKey, decodeRawBms, key, reverseAdjustKey, setKey, sort)
+module Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), Object, RawBms, RawHeader, RawObject, adjustKey, decodeRawBms, key, reverseAdjustKey, setKey, sort)
 
 import Array exposing (Array)
 import Bms.TimeObject exposing (TimeObject)
@@ -12,7 +12,10 @@ import Tuple
 
 type alias Bms =
     { chartType : ChartType
-    , header : Headers
+    , header : RawHeader
+    , bpm : Float
+    , lnobj : Maybe Int
+    , waves : Dict Int String
     , lines : Array Float
     , notes : List Note
     , others : List RawObject
@@ -65,10 +68,14 @@ setKey k nt =
 
 type alias RawBms =
     { name : String
-    , headers : Headers
+    , header : RawHeader
     , mlens : Dict Int Float
     , data : List RawObject
     }
+
+
+type alias RawHeader =
+    Dict String (List String)
 
 
 type alias RawObject =
@@ -76,13 +83,6 @@ type alias RawObject =
     , fraction : Float
     , value : String
     , channel : Int
-    }
-
-
-type alias Headers =
-    { bpm : Float
-    , lnobj : Maybe Int
-    , waves : Dict Int String
     }
 
 
@@ -102,21 +102,9 @@ decodeRawBms =
     in
     D.map4 RawBms
         (D.field "name" D.string)
-        (D.field "header" decodeHeaders)
+        (D.field "header" <| D.dict (D.map (Maybe.withDefault []) <| D.maybe <| D.list D.string))
         (D.field "mlens" <| D.map (Dict.fromList << List.map (Tuple.mapFirst (Maybe.withDefault -1 << String.toInt))) (D.keyValuePairs D.float))
         (D.field "data" (D.map (List.sortWith rawComp) <| D.list decodeRawObject))
-
-
-decodeHeaders : Decoder Headers
-decodeHeaders =
-    let
-        f =
-            Tuple.mapFirst <| base 36
-    in
-    D.map3 Headers
-        (D.field "bpm" D.float)
-        (D.field "lnobj" <| D.map (Maybe.map (base 36)) <| D.maybe D.string)
-        (D.field "waves" (D.map (Dict.fromList << List.map f) (D.keyValuePairs D.string)))
 
 
 decodeRawObject : Decoder RawObject

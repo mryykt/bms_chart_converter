@@ -120,7 +120,7 @@ toRawData bms =
                     let
                         channel =
                             Bms.reverseAdjustKey bms.chartType n
-                                + (if Just tv == bms.header.lnobj then
+                                + (if Just tv == bms.lnobj then
                                     36
 
                                    else
@@ -146,7 +146,7 @@ toRawData bms =
             bms.others ++ List.concatMap fromNote bms.notes
     in
     { name = ""
-    , headers = bms.header
+    , header = bms.header
     , mlens = mlens
     , data = data
     }

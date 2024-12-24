@@ -65,8 +65,8 @@ update msg model =
                         (Task.succeed data)
                     )
 
-                Err _ ->
-                    Debug.todo ""
+                Err err ->
+                    Debug.log "" err |> Debug.todo ""
 
         ( Model options bms Nothing, CompleteConvert converted ) ->
             ( Model options bms (Just converted), Cmd.none )
@@ -93,7 +93,7 @@ view model =
         Model options bms converted ->
             let
                 group =
-                    groupingNotes bms.header.waves bms.notes
+                    groupingNotes bms.waves bms.notes
                         |> List.concatMap (Bms.Converter.Clustering.clustering options.bandWidth options.kernelFunction .time)
 
                 groupedNotes =

@@ -20,7 +20,7 @@ convert : ChartType -> Options -> Bms -> Bms
 convert _ options bms =
     let
         groups =
-            groupingNotes bms.header.waves bms.notes
+            groupingNotes bms.waves bms.notes
                 |> List.andThen (Bms.Converter.Clustering.clustering options.bandWidth options.kernelFunction .time)
 
         newGroups =
