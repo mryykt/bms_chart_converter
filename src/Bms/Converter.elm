@@ -126,6 +126,12 @@ inscreaseScratch options groups =
         |> (\( a, b ) -> a ++ b)
 
 
+
+-----------------------------------------
+--- helper function ---------------------
+-----------------------------------------
+
+
 doujiOshi : ListNonempty Note -> Bool
 doujiOshi =
     Nonempty.toList >> List.foldl2 (\x y acc -> acc || Maybe.unwrap False (.time >> (==) x.time) y) False
