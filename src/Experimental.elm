@@ -61,7 +61,7 @@ update msg model =
                     in
                     ( Model options data Nothing
                     , Task.perform
-                        (convert data.chartType options >> CompleteConvert)
+                        (convert options >> CompleteConvert)
                         (Task.succeed data)
                     )
 

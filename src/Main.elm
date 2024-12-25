@@ -1,5 +1,6 @@
 port module Main exposing (..)
 
+import Bms.Converter exposing (convert)
 import Bms.Converter.Options as Options exposing (Options)
 import Bms.Converter.Options.Edit as OptionsEdit
 import Bms.Load as Load
@@ -26,7 +27,7 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 type Model
     = Init (Maybe String)
-    | Model Bms Options
+    | Model Bms Options (Maybe Bms)
 
 
 init : () -> ( Model, Cmd Msg )
@@ -42,6 +43,8 @@ type Msg
     | FileLoaded String
     | LoadBMS (Result Error RawBms)
     | EditOptions (OptionsEdit.Msg Options)
+    | StartConverting
+    | CompleteConverting Bms
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -68,7 +71,7 @@ update msg model =
                         data =
                             Load.fromRawData raw
                     in
-                    ( Model data Options.defOptions, Cmd.none )
+                    ( Model data Options.defOptions Nothing, Cmd.none )
 
                 -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
@@ -76,8 +79,24 @@ update msg model =
 
         EditOptions msg_ ->
             case model of
-                Model bms options ->
-                    ( Model bms (OptionsEdit.update msg_ options), Cmd.none )
+                Model bms options converted ->
+                    ( Model bms (OptionsEdit.update msg_ options) converted, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        StartConverting ->
+            case model of
+                Model bms options _ ->
+                    ( model, Task.perform (convert options >> CompleteConverting) (Task.succeed bms) )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        CompleteConverting converted ->
+            case model of
+                Model bms options _ ->
+                    ( Model bms options (Just converted), Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -93,10 +112,16 @@ view model =
     div [ css [ overflow scroll, padding (px 10) ] ] <|
         button [ onClick FileRequested ] [ text "file" ]
             :: (case model of
-                    Model bms options ->
+                    Model bms options converted ->
                         [ lazy Preview.view bms
                         , OptionsEdit.view options |> Html.map EditOptions
-                        , button [] [ text "convert" ]
+                        , button [ onClick StartConverting ] [ text "convert" ]
+                        , case converted of
+                            Just bms_ ->
+                                lazy Preview.view bms_
+
+                            Nothing ->
+                                div [] []
                         ]
 
                     _ ->

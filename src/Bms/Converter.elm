@@ -7,7 +7,7 @@ import Basics.Extra exposing (..)
 import Bms.Converter.Clustering
 import Bms.Converter.Options exposing (IncreaseScratchOptions, Options)
 import Bms.TimeObject as TimeObject
-import Bms.Types as Bms exposing (Bms, ChartType, Note, NoteType(..), key)
+import Bms.Types as Bms exposing (Bms, Note, NoteType(..), key)
 import Dict exposing (Dict)
 import List.Extra as List
 import List.Extra2 as List
@@ -16,8 +16,8 @@ import List.Nonempty.Extra as Nonempty
 import Maybe.Extra as Maybe
 
 
-convert : ChartType -> Options -> Bms -> Bms
-convert _ options bms =
+convert : Options -> Bms -> Bms
+convert options bms =
     let
         groups =
             groupingNotes bms.waves bms.notes
