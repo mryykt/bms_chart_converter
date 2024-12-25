@@ -1,4 +1,4 @@
-module Bms.Save exposing (toRawData, toString)
+module Bms.Save exposing (save, toRawData, toString)
 
 import Array
 import Basics.Extra exposing (..)
@@ -6,10 +6,16 @@ import Bms.TimeObject as TimeObject
 import Bms.Types as Bms exposing (..)
 import Bms.Utils exposing (..)
 import Dict exposing (Dict)
+import File.Download as Download
 import List.Extra as List
 import List.Extra2 as List
 import List.Nonempty as Nonempty exposing (ListNonempty)
 import List.Nonempty.Extra as Nonempty
+
+
+save : Bms -> Cmd msg
+save bms =
+    toRawData bms |> (\rawBms -> Download.string rawBms.name "text/plain" (toString rawBms))
 
 
 toString : RawBms -> String

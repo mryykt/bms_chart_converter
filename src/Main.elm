@@ -5,6 +5,7 @@ import Bms.Converter.Options as Options exposing (Options)
 import Bms.Converter.Options.Edit as OptionsEdit
 import Bms.Load as Load
 import Bms.Preview as Preview
+import Bms.Save exposing (save)
 import Bms.Types exposing (Bms, RawBms, decodeRawBms)
 import Browser
 import Css exposing (overflow, padding, px, scroll)
@@ -45,6 +46,7 @@ type Msg
     | EditOptions (OptionsEdit.Msg Options)
     | StartConverting
     | CompleteConverting Bms
+    | SaveBms
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -101,6 +103,14 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        SaveBms ->
+            case model of
+                Model _ _ (Just converted) ->
+                    ( model, save converted )
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
@@ -122,6 +132,7 @@ view model =
 
                             Nothing ->
                                 div [] []
+                        , button [ onClick SaveBms ] [ text "save" ]
                         ]
 
                     _ ->
