@@ -91,7 +91,8 @@ fromRawData { name, header, mlens, data } =
                 |> List.filterMap (\( k, v ) -> Maybe.map (Tuple.pair <| base 36 (String.dropLeft 3 k)) <| List.last v)
                 |> Dict.fromList
     in
-    { chartType = chartType
+    { name = name
+    , chartType = chartType
     , header = header
     , bpm = bpm
     , lnobj = lnobj

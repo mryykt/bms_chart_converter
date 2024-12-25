@@ -154,7 +154,7 @@ toRawData bms =
         data =
             bms.others ++ List.concatMap fromNote bms.notes
     in
-    { name = ""
+    { name = bms.name
     , header = bms.header
     , mlens = mlens
     , data = data

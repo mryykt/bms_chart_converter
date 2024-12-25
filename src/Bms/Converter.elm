@@ -14,6 +14,7 @@ import List.Extra2 as List
 import List.Nonempty as Nonempty exposing (ListNonempty)
 import List.Nonempty.Extra as Nonempty
 import Maybe.Extra as Maybe
+import String.Extra as String
 
 
 convert : Options -> Bms -> Bms
@@ -31,8 +32,26 @@ convert options bms =
                     else
                         identity
                    )
+
+        name =
+            let
+                base =
+                    String.leftOfBack "." bms.name
+
+                ext =
+                    String.rightOfBack "." bms.name
+            in
+            base
+                ++ (if options.inscreaseScratchOptions.enabled then
+                        "_SC"
+
+                    else
+                        ""
+                   )
+                ++ "."
+                ++ ext
     in
-    { bms | notes = List.map Nonempty.toList newGroups |> List.concat |> Bms.sort }
+    { bms | name = name, notes = List.map Nonempty.toList newGroups |> List.concat |> Bms.sort }
 
 
 groupingNotes : Dict Int String -> List Note -> List (ListNonempty Note)

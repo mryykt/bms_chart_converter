@@ -11,7 +11,8 @@ import Tuple
 
 
 type alias Bms =
-    { chartType : ChartType
+    { name : String
+    , chartType : ChartType
     , header : RawHeader
     , bpm : Float
     , lnobj : Maybe Int
