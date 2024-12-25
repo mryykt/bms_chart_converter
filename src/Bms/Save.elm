@@ -1,4 +1,4 @@
-module Bms.Save exposing (save, toRawData)
+module Bms.Save exposing (toRawData, toString)
 
 import Array
 import Basics.Extra exposing (..)
@@ -12,8 +12,8 @@ import List.Nonempty as Nonempty exposing (ListNonempty)
 import List.Nonempty.Extra as Nonempty
 
 
-save : RawBms -> String
-save bms =
+toString : RawBms -> String
+toString bms =
     let
         groupedByMeasure =
             bms.data
