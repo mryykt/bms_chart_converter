@@ -13,7 +13,7 @@ type alias Optional a =
 
 
 type alias IncreaseScratchOptions =
-    { minDuration : Int }
+    { minDuration : Int, isIncludingLn : Bool }
 
 
 defOptions : Options
@@ -23,4 +23,4 @@ defOptions =
 
 defIncreaseScratchOptions : IncreaseScratchOptions
 defIncreaseScratchOptions =
-    { minDuration = 16 }
+    { minDuration = 16, isIncludingLn = True }

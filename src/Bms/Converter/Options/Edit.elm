@@ -59,7 +59,9 @@ view options =
         , optional "increase scratch"
             { getter = .inscreaseScratchOptions, setter = \x y -> { y | inscreaseScratchOptions = x } }
             options
-            [ int "min duration" { getter = .minDuration, setter = \x y -> { y | minDuration = x } } ]
+            [ int "min duration" { getter = .minDuration, setter = \x y -> { y | minDuration = x } }
+            , bool "including long-note" { getter = .isIncludingLn, setter = \x y -> { y | isIncludingLn = x } }
+            ]
         ]
 
 
@@ -134,8 +136,8 @@ float l { getter, setter } =
         }
 
 
-checkbox : String -> Lens a Bool -> a -> Field (Msg a)
-checkbox l { getter, setter } v =
+bool : String -> Lens a Bool -> a -> Field (Msg a)
+bool l { getter, setter } v =
     field l <| checkbox_ (getter v) (Update << setter)
 
 

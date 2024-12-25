@@ -105,6 +105,12 @@ inscreaseScratch options groups =
                         / toFloat options.minDuration
                         && not (doujiOshi notes)
                         && List.all (not << isOverlappingGroup notes) scratchGroups
+                        && (if options.isIncludingLn then
+                                True
+
+                            else
+                                Nonempty.all (not << isLn << .ext) notes
+                           )
                 )
                 keyGroups
 
@@ -130,6 +136,16 @@ inscreaseScratch options groups =
 -----------------------------------------
 --- helper function ---------------------
 -----------------------------------------
+
+
+isLn : NoteType -> Bool
+isLn nt =
+    case nt of
+        Long _ _ _ ->
+            True
+
+        _ ->
+            False
 
 
 doujiOshi : ListNonempty Note -> Bool
