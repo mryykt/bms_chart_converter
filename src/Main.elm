@@ -1,9 +1,12 @@
 port module Main exposing (..)
 
+import Bms.Converter.Options as Options exposing (Options)
+import Bms.Converter.Options.Edit as OptionsEdit
 import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Types exposing (Bms, RawBms, decodeRawBms)
 import Browser
+import Css exposing (overflow, padding, px, scroll)
 import File exposing (File)
 import File.Select as Select
 import Html.Styled as Html exposing (Html, button, div, text)
@@ -23,7 +26,7 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 type Model
     = Init (Maybe String)
-    | Model (Maybe Bms)
+    | Model Bms Options
 
 
 init : () -> ( Model, Cmd Msg )
@@ -38,6 +41,7 @@ type Msg
     | FileSelected File
     | FileLoaded String
     | LoadBMS (Result Error RawBms)
+    | EditOptions (OptionsEdit.Msg Options)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -64,10 +68,18 @@ update msg model =
                         data =
                             Load.fromRawData raw
                     in
-                    ( Model <| Just data, Cmd.none )
+                    ( Model data Options.defOptions, Cmd.none )
 
                 -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
+                    ( model, Cmd.none )
+
+        EditOptions msg_ ->
+            case model of
+                Model bms options ->
+                    ( Model bms (OptionsEdit.update msg_ options), Cmd.none )
+
+                _ ->
                     ( model, Cmd.none )
 
 
@@ -78,15 +90,18 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ button [ onClick FileRequested ] [ text "file" ]
-        , case model of
-            Model (Just bms) ->
-                lazy Preview.view bms
+    div [ css [ overflow scroll, padding (px 10) ] ] <|
+        button [ onClick FileRequested ] [ text "file" ]
+            :: (case model of
+                    Model bms options ->
+                        [ lazy Preview.view bms
+                        , OptionsEdit.view options |> Html.map EditOptions
+                        , button [] [ text "convert" ]
+                        ]
 
-            _ ->
-                div [] []
-        ]
+                    _ ->
+                        []
+               )
 
 
 main : Program () Model Msg

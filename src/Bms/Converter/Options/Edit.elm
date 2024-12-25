@@ -2,6 +2,7 @@ module Bms.Converter.Options.Edit exposing (..)
 
 import Bms.Converter.Clustering.KernelFunction as Kernel
 import Bms.Converter.Options exposing (Optional, Options, defOptions)
+import Bulma.Styled.CDN as CDN
 import Bulma.Styled.Form as Form exposing (Control, Field, controlSelect, controlSelectModifiers)
 import Bulma.Styled.Modifiers exposing (standard)
 import Dict exposing (Dict)
@@ -42,7 +43,8 @@ update msg options =
 view : Options -> Html (Msg Options)
 view options =
     Form.field []
-        [ float "band width" { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } } options
+        [ CDN.stylesheet
+        , float "band width" { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } } options
         , select "kernel function"
             (Dict.fromList
                 [ ( "Gauss", Kernel.Gauss )
