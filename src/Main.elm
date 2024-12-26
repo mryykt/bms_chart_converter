@@ -31,7 +31,7 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 
 type Model
-    = Init (Maybe String)
+    = Init
     | Model { bms : Bms, options : Options, converted : Maybe Bms, state : State }
 
 
@@ -46,7 +46,7 @@ defState =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Init Nothing
+    ( Init
     , Cmd.none
     )
 
@@ -54,7 +54,7 @@ init _ =
 type Msg
     = FileRequested
     | FileSelected File
-    | FileLoaded String
+    | FileLoaded String String
     | LoadBMS (Result Error RawBms)
     | EditOptions (OptionsEdit.Msg Options)
     | StartConverting
@@ -70,11 +70,11 @@ update msg model =
             ( model, Select.file [ ".bms", ".bme", ".bml", ".pms" ] FileSelected )
 
         FileSelected file ->
-            ( Init <| Just <| File.name file, Task.perform FileLoaded (File.toString file) )
+            ( Init, Task.perform (FileLoaded <| File.name file) (File.toString file) )
 
-        FileLoaded buf ->
+        FileLoaded name buf ->
             case model of
-                Init (Just name) ->
+                Init ->
                     ( model, compileBMS { name = name, buf = buf } )
 
                 _ ->
