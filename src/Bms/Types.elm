@@ -1,4 +1,20 @@
-module Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), Object, RawBms, RawHeader, RawObject, adjustKey, decodeRawBms, key, reverseAdjustKey, setKey, sort)
+module Bms.Types exposing
+    ( Bms
+    , ChartType(..)
+    , Note
+    , NoteType(..)
+    , Object
+    , RawBms
+    , RawHeader
+    , RawObject
+    , adjustKey
+    , decodeRawBms
+    , defRawBms
+    , key
+    , reverseAdjustKey
+    , setKey
+    , sort
+    )
 
 import Array exposing (Array)
 import Bms.TimeObject exposing (TimeObject)
@@ -84,6 +100,19 @@ type alias RawObject =
     , fraction : Float
     , value : String
     , channel : Int
+    }
+
+
+defRawBms : RawBms
+defRawBms =
+    let
+        note k =
+            { measure = 1, fraction = 0, value = "00", channel = 36 + k }
+    in
+    { name = "def.bme"
+    , header = Dict.fromList [ ( "wav00", [ "0.wav" ] ) ]
+    , mlens = Dict.empty
+    , data = [ note 1, note 2, note 3, note 4, note 5, note 6, note 8, note 9 ]
     }
 
 

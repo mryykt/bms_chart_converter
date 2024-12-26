@@ -6,7 +6,7 @@ import Bms.Converter.Options.Edit as OptionsEdit
 import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Save exposing (save)
-import Bms.Types exposing (Bms, RawBms, decodeRawBms)
+import Bms.Types exposing (Bms, RawBms, decodeRawBms, defRawBms)
 import Browser
 import Bulma.Styled.CDN as CDN
 import Bulma.Styled.Elements as Bulma exposing (buttonModifiers)
@@ -30,9 +30,8 @@ port compileBMS : { name : String, buf : String } -> Cmd msg
 port loadBMS : (Value -> msg) -> Sub msg
 
 
-type Model
-    = Init
-    | Model { bms : Bms, options : Options, converted : Maybe Bms, state : State }
+type alias Model =
+    { bms : Bms, options : Options, converted : Maybe Bms, state : State }
 
 
 type alias State =
@@ -46,7 +45,7 @@ defState =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Init
+    ( { bms = Load.fromRawData defRawBms, options = Options.defOptions, converted = Nothing, state = defState }
     , Cmd.none
     )
 
@@ -64,21 +63,16 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ state } as model) =
     case msg of
         FileRequested ->
             ( model, Select.file [ ".bms", ".bme", ".bml", ".pms" ] FileSelected )
 
         FileSelected file ->
-            ( Init, Task.perform (FileLoaded <| File.name file) (File.toString file) )
+            ( model, Task.perform (FileLoaded <| File.name file) (File.toString file) )
 
         FileLoaded name buf ->
-            case model of
-                Init ->
-                    ( model, compileBMS { name = name, buf = buf } )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( model, compileBMS { name = name, buf = buf } )
 
         LoadBMS result ->
             case result of
@@ -87,58 +81,33 @@ update msg model =
                         data =
                             Load.fromRawData raw
                     in
-                    ( Model { bms = data, options = Options.defOptions, converted = Nothing, state = defState }, Cmd.none )
+                    ( { model | bms = data }, Cmd.none )
 
                 -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
                     ( model, Cmd.none )
 
         EditOptions msg_ ->
-            case model of
-                Model model_ ->
-                    ( Model { model_ | options = OptionsEdit.update msg_ model_.options }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( { model | options = OptionsEdit.update msg_ model.options }, Cmd.none )
 
         StartConverting ->
-            case model of
-                Model ({ state } as model_) ->
-                    ( Model { model_ | state = { state | isConverting = True } }, Task.perform (convert model_.options >> CompleteConverting) (Task.succeed model_.bms) )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( { model | state = { state | isConverting = True } }, Task.perform (convert model.options >> CompleteConverting) (Task.succeed model.bms) )
 
         CompleteConverting converted ->
-            case model of
-                Model ({ state } as model_) ->
-                    ( Model { model_ | converted = Just converted, state = { state | isConverting = False } }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( { model | converted = Just converted, state = { state | isConverting = False } }, Cmd.none )
 
         SaveBms ->
-            case model of
-                Model { converted } ->
-                    ( model
-                    , case converted of
-                        Just x ->
-                            save x
+            ( model
+            , case model.converted of
+                Just x ->
+                    save x
 
-                        Nothing ->
-                            Cmd.none
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
+                Nothing ->
+                    Cmd.none
+            )
 
         UpdateState setter ->
-            case model of
-                Model ({ state } as model_) ->
-                    ( Model { model_ | state = setter state }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( { model | state = setter state }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -152,68 +121,63 @@ view model =
         button =
             Bulma.button { buttonModifiers | color = primary }
     in
-    div [ css [ overflow auto, padding (px 10), margin (px 20) ] ] <|
-        [ CDN.stylesheet, button [ onClick FileRequested ] [ text "file" ] ]
-            ++ (case model of
-                    Model model_ ->
-                        [ lazy Preview.view model_.bms
-                        , case model_.converted of
-                            Just bms_ ->
-                                lazy Preview.view bms_
+    div [ css [ overflow auto, padding (px 10), margin (px 20) ] ]
+        [ CDN.stylesheet
+        , button [ onClick FileRequested ] [ text "file" ]
+        , lazy Preview.view model.bms
+        , case model.converted of
+            Just bms ->
+                lazy Preview.view bms
 
-                            Nothing ->
-                                div [] []
-                        , Bulma.button
-                            { buttonModifiers
-                                | state =
-                                    if model_.state.isConverting then
-                                        loading
+            Nothing ->
+                div [] []
+        , Bulma.button
+            { buttonModifiers
+                | state =
+                    if model.state.isConverting then
+                        loading
 
-                                    else
-                                        buttonModifiers.state
-                            }
-                            [ onClick StartConverting ]
-                            [ text "convert" ]
-                        , if model_.converted /= Nothing then
-                            button [ onClick SaveBms ] [ text "save" ]
+                    else
+                        buttonModifiers.state
+            }
+            [ onClick StartConverting ]
+            [ text "convert" ]
+        , if model.converted /= Nothing then
+            button [ onClick SaveBms ] [ text "save" ]
 
-                          else
-                            div [] []
-                        , if model_.state.isShowOptions then
-                            div
-                                [ css
-                                    [ position fixed
-                                    , zIndex (int 200)
-                                    , width (pct 70)
-                                    , height (pct 100)
-                                    , top zero
-                                    , right zero
-                                    , backgroundColor (rgba 0 0 0 0.7)
-                                    ]
-                                ]
-                                [ OptionsEdit.view model_.options |> Html.map EditOptions
-                                ]
+          else
+            div [] []
+        , if model.state.isShowOptions then
+            div
+                [ css
+                    [ position fixed
+                    , zIndex (int 200)
+                    , width (pct 70)
+                    , height (pct 100)
+                    , top zero
+                    , right zero
+                    , backgroundColor (rgba 0 0 0 0.7)
+                    ]
+                ]
+                [ OptionsEdit.view model.options |> Html.map EditOptions
+                ]
 
-                          else
-                            div
-                                [ css
-                                    [ position fixed
-                                    , zIndex (int 200)
-                                    , width (px 50)
-                                    , height (pct 100)
-                                    , top zero
-                                    , right zero
-                                    , backgroundColor (rgba 0 0 0 0.7)
-                                    , hover [ cursor pointer ]
-                                    ]
-                                , onClick (UpdateState <| \x -> { x | isShowOptions = True })
-                                ]
-                                []
-                        ]
-
-                    _ ->
-                        []
-               )
+          else
+            div
+                [ css
+                    [ position fixed
+                    , zIndex (int 200)
+                    , width (px 50)
+                    , height (pct 100)
+                    , top zero
+                    , right zero
+                    , backgroundColor (rgba 0 0 0 0.7)
+                    , hover [ cursor pointer ]
+                    ]
+                , onClick (UpdateState <| \x -> { x | isShowOptions = True })
+                ]
+                []
+        ]
 
 
 main : Program () Model Msg
