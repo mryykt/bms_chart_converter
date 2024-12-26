@@ -32,7 +32,7 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 type Model
     = Init (Maybe String)
-    | Model Bms Options (Maybe Bms) State
+    | Model { bms : Bms, options : Options, converted : Maybe Bms, state : State }
 
 
 type alias State =
@@ -87,7 +87,7 @@ update msg model =
                         data =
                             Load.fromRawData raw
                     in
-                    ( Model data Options.defOptions Nothing defState, Cmd.none )
+                    ( Model { bms = data, options = Options.defOptions, converted = Nothing, state = defState }, Cmd.none )
 
                 -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
@@ -95,40 +95,47 @@ update msg model =
 
         EditOptions msg_ ->
             case model of
-                Model bms options converted state ->
-                    ( Model bms (OptionsEdit.update msg_ options) converted state, Cmd.none )
+                Model model_ ->
+                    ( Model { model_ | options = OptionsEdit.update msg_ model_.options }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
         StartConverting ->
             case model of
-                Model bms options converted state ->
-                    ( Model bms options converted { state | isConverting = True }, Task.perform (convert options >> CompleteConverting) (Task.succeed bms) )
+                Model ({ state } as model_) ->
+                    ( Model { model_ | state = { state | isConverting = True } }, Task.perform (convert model_.options >> CompleteConverting) (Task.succeed model_.bms) )
 
                 _ ->
                     ( model, Cmd.none )
 
         CompleteConverting converted ->
             case model of
-                Model bms options _ state ->
-                    ( Model bms options (Just converted) { state | isConverting = False }, Cmd.none )
+                Model ({ state } as model_) ->
+                    ( Model { model_ | converted = Just converted, state = { state | isConverting = False } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
         SaveBms ->
             case model of
-                Model _ _ (Just converted) _ ->
-                    ( model, save converted )
+                Model { converted } ->
+                    ( model
+                    , case converted of
+                        Just x ->
+                            save x
+
+                        Nothing ->
+                            Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
 
         UpdateState setter ->
             case model of
-                Model bms options converted state ->
-                    ( Model bms options converted <| setter state, Cmd.none )
+                Model ({ state } as model_) ->
+                    ( Model { model_ | state = setter state }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -148,9 +155,9 @@ view model =
     div [ css [ overflow auto, padding (px 10), margin (px 20) ] ] <|
         [ CDN.stylesheet, button [ onClick FileRequested ] [ text "file" ] ]
             ++ (case model of
-                    Model bms options converted state ->
-                        [ lazy Preview.view bms
-                        , case converted of
+                    Model model_ ->
+                        [ lazy Preview.view model_.bms
+                        , case model_.converted of
                             Just bms_ ->
                                 lazy Preview.view bms_
 
@@ -159,7 +166,7 @@ view model =
                         , Bulma.button
                             { buttonModifiers
                                 | state =
-                                    if state.isConverting then
+                                    if model_.state.isConverting then
                                         loading
 
                                     else
@@ -167,12 +174,12 @@ view model =
                             }
                             [ onClick StartConverting ]
                             [ text "convert" ]
-                        , if converted /= Nothing then
+                        , if model_.converted /= Nothing then
                             button [ onClick SaveBms ] [ text "save" ]
 
                           else
                             div [] []
-                        , if state.isShowOptions then
+                        , if model_.state.isShowOptions then
                             div
                                 [ css
                                     [ position fixed
@@ -184,7 +191,7 @@ view model =
                                     , backgroundColor (rgba 0 0 0 0.7)
                                     ]
                                 ]
-                                [ OptionsEdit.view options |> Html.map EditOptions
+                                [ OptionsEdit.view model_.options |> Html.map EditOptions
                                 ]
 
                           else
