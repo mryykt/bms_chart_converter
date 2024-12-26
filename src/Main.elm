@@ -8,11 +8,15 @@ import Bms.Preview as Preview
 import Bms.Save exposing (save)
 import Bms.Types exposing (Bms, RawBms, decodeRawBms)
 import Browser
-import Css exposing (overflow, padding, px, scroll)
+import Bulma.Styled.CDN as CDN
+import Bulma.Styled.Elements as Bulma exposing (buttonModifiers)
+import Bulma.Styled.Modifiers exposing (loading, primary)
+import Bulma.Styled.Modifiers.Typography exposing (Color(..))
+import Css exposing (..)
 import File exposing (File)
 import File.Select as Select
-import Html.Styled as Html exposing (Html, button, div, text)
-import Html.Styled.Attributes exposing (..)
+import Html.Styled as Html exposing (Html, div, text)
+import Html.Styled.Attributes exposing (css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Lazy exposing (lazy)
 import Json.Decode exposing (Error, decodeValue)
@@ -28,7 +32,16 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 type Model
     = Init (Maybe String)
-    | Model Bms Options (Maybe Bms)
+    | Model Bms Options (Maybe Bms) State
+
+
+type alias State =
+    { isShowOptions : Bool, isConverting : Bool }
+
+
+defState : State
+defState =
+    { isShowOptions = False, isConverting = False }
 
 
 init : () -> ( Model, Cmd Msg )
@@ -47,6 +60,7 @@ type Msg
     | StartConverting
     | CompleteConverting Bms
     | SaveBms
+    | UpdateState (State -> State)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -73,7 +87,7 @@ update msg model =
                         data =
                             Load.fromRawData raw
                     in
-                    ( Model data Options.defOptions Nothing, Cmd.none )
+                    ( Model data Options.defOptions Nothing defState, Cmd.none )
 
                 -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
@@ -81,32 +95,40 @@ update msg model =
 
         EditOptions msg_ ->
             case model of
-                Model bms options converted ->
-                    ( Model bms (OptionsEdit.update msg_ options) converted, Cmd.none )
+                Model bms options converted state ->
+                    ( Model bms (OptionsEdit.update msg_ options) converted state, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
         StartConverting ->
             case model of
-                Model bms options _ ->
-                    ( model, Task.perform (convert options >> CompleteConverting) (Task.succeed bms) )
+                Model bms options converted state ->
+                    ( Model bms options converted { state | isConverting = True }, Task.perform (convert options >> CompleteConverting) (Task.succeed bms) )
 
                 _ ->
                     ( model, Cmd.none )
 
         CompleteConverting converted ->
             case model of
-                Model bms options _ ->
-                    ( Model bms options (Just converted), Cmd.none )
+                Model bms options _ state ->
+                    ( Model bms options (Just converted) { state | isConverting = False }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
         SaveBms ->
             case model of
-                Model _ _ (Just converted) ->
+                Model _ _ (Just converted) _ ->
                     ( model, save converted )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        UpdateState setter ->
+            case model of
+                Model bms options converted state ->
+                    ( Model bms options converted <| setter state, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -119,20 +141,67 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [ css [ overflow scroll, padding (px 10) ] ] <|
-        button [ onClick FileRequested ] [ text "file" ]
-            :: (case model of
-                    Model bms options converted ->
+    let
+        button =
+            Bulma.button { buttonModifiers | color = primary }
+    in
+    div [ css [ overflow auto, padding (px 10), margin (px 20) ] ] <|
+        [ CDN.stylesheet, button [ onClick FileRequested ] [ text "file" ] ]
+            ++ (case model of
+                    Model bms options converted state ->
                         [ lazy Preview.view bms
-                        , OptionsEdit.view options |> Html.map EditOptions
-                        , button [ onClick StartConverting ] [ text "convert" ]
                         , case converted of
                             Just bms_ ->
                                 lazy Preview.view bms_
 
                             Nothing ->
                                 div [] []
-                        , button [ onClick SaveBms ] [ text "save" ]
+                        , Bulma.button
+                            { buttonModifiers
+                                | state =
+                                    if state.isConverting then
+                                        loading
+
+                                    else
+                                        buttonModifiers.state
+                            }
+                            [ onClick StartConverting ]
+                            [ text "convert" ]
+                        , if converted /= Nothing then
+                            button [ onClick SaveBms ] [ text "save" ]
+
+                          else
+                            div [] []
+                        , if state.isShowOptions then
+                            div
+                                [ css
+                                    [ position fixed
+                                    , zIndex (int 200)
+                                    , width (pct 70)
+                                    , height (pct 100)
+                                    , top zero
+                                    , right zero
+                                    , backgroundColor (rgba 0 0 0 0.7)
+                                    ]
+                                ]
+                                [ OptionsEdit.view options |> Html.map EditOptions
+                                ]
+
+                          else
+                            div
+                                [ css
+                                    [ position fixed
+                                    , zIndex (int 200)
+                                    , width (px 50)
+                                    , height (pct 100)
+                                    , top zero
+                                    , right zero
+                                    , backgroundColor (rgba 0 0 0 0.7)
+                                    , hover [ cursor pointer ]
+                                    ]
+                                , onClick (UpdateState <| \x -> { x | isShowOptions = True })
+                                ]
+                                []
                         ]
 
                     _ ->
