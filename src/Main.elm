@@ -21,6 +21,7 @@ import Html.Styled.Events exposing (onClick)
 import Html.Styled.Lazy exposing (lazy)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
+import List.Styled.Extra exposing (whenHtml, whenJustHtml)
 import Task
 
 
@@ -125,12 +126,7 @@ view model =
         [ CDN.stylesheet
         , button [ onClick FileRequested ] [ text "file" ]
         , lazy Preview.view model.bms
-        , case model.converted of
-            Just bms ->
-                lazy Preview.view bms
-
-            Nothing ->
-                div [] []
+        , whenJustHtml model.converted (lazy Preview.view)
         , Bulma.button
             { buttonModifiers
                 | state =
@@ -142,11 +138,8 @@ view model =
             }
             [ onClick StartConverting ]
             [ text "convert" ]
-        , if model.converted /= Nothing then
-            button [ onClick SaveBms ] [ text "save" ]
-
-          else
-            div [] []
+        , whenHtml (model.converted /= Nothing) <|
+            button [ onClick SaveBms, css [ margin (px 10) ] ] [ text "save" ]
         , if model.state.isShowOptions then
             div
                 [ css
