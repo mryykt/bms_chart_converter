@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@parcel/transformer-elm": "^2.13.3",
+    "@parcel/transformer-sass": "^2.13.3",
     "buffer": "^6.0.3",
     "elm": "^0.19.1-5",
     "elm-hot": "^1.1.6",
@@ -22,6 +23,7 @@
     "util": "^0.12.5"
   },
   "dependencies": {
-    "bms": "^51.0.0"
+    "bms": "^51.0.0",
+    "bulma": "^1.0.3"
   }
 }

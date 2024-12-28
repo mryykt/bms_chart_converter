@@ -1,4 +1,4 @@
-import "./style.css";
+import "./style.scss";
 import * as bms from "bms";
 import { Elm } from "./Main.elm";
 
