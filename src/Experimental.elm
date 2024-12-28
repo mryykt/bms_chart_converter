@@ -8,7 +8,6 @@ import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Types exposing (Bms, RawBms, decodeRawBms, sort)
 import Browser
-import Bulma.Styled.CDN as CDN
 import Css exposing (..)
 import Html.Styled as H exposing (Html, div)
 import Html.Styled.Attributes exposing (css)
@@ -100,8 +99,7 @@ view model =
                     List.indexedMap (\i notes -> List.map (\note -> { note | value = i }) <| Nonempty.toList notes) group |> List.concat |> sort
             in
             div [ css [ position relative, overflow scroll, padding (px 50) ] ]
-                [ CDN.stylesheet
-                , lazy Preview.groupedView { bms | notes = groupedNotes }
+                [ lazy Preview.groupedView { bms | notes = groupedNotes }
                 , H.map EditOptions <| Options.view options
                 , Maybe.unwrap (div [] []) (lazy Preview.view) converted
                 ]

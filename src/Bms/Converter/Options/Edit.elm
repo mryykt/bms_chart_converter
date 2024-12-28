@@ -2,9 +2,6 @@ module Bms.Converter.Options.Edit exposing (..)
 
 import Bms.Converter.Clustering.KernelFunction as Kernel
 import Bms.Converter.Options exposing (Optional, Options, defOptions)
-import Bulma.Styled.CDN as CDN
-import Bulma.Styled.Form as Form exposing (Control, Field, controlSelect, controlSelectModifiers)
-import Bulma.Styled.Modifiers exposing (standard)
 import Dict exposing (Dict)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attributes
@@ -42,9 +39,8 @@ update msg options =
 
 view : Options -> Html (Msg Options)
 view options =
-    Form.field []
-        [ CDN.stylesheet
-        , float "band width" { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } } options
+    Html.div []
+        [ float "band width" { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } } options
         , select "kernel function"
             (Dict.fromList
                 [ ( "Gauss", Kernel.Gauss )
@@ -65,7 +61,7 @@ view options =
         ]
 
 
-optional : String -> Lens a (Optional b) -> a -> List (b -> Field (Msg b)) -> Field (Msg a)
+optional : String -> Lens a (Optional b) -> a -> List (b -> Html (Msg b)) -> Html (Msg a)
 optional l { getter, setter } v forms =
     let
         f : Msg b -> Msg a
@@ -86,7 +82,7 @@ optional l { getter, setter } v forms =
                         )
     in
     field l <|
-        Form.field
+        Html.div
             []
             [ checkbox_ (getter v).enabled
                 (\b ->
@@ -111,16 +107,15 @@ optional l { getter, setter } v forms =
             ]
 
 
-text : String -> Lens a String -> a -> Field (Msg a)
+text : String -> Lens a String -> a -> Html (Msg a)
 text l { getter, setter } v =
     field l <|
-        Form.controlInput Form.controlInputModifiers
-            []
+        Html.input
             [ onInput (Update << setter), Attributes.value (getter v) ]
             []
 
 
-int : String -> Lens a Int -> a -> Field (Msg a)
+int : String -> Lens a Int -> a -> Html (Msg a)
 int l { getter, setter } =
     text l
         { getter = getter >> String.fromInt
@@ -128,7 +123,7 @@ int l { getter, setter } =
         }
 
 
-float : String -> Lens a Float -> a -> Field (Msg a)
+float : String -> Lens a Float -> a -> Html (Msg a)
 float l { getter, setter } =
     text l
         { getter = getter >> String.fromFloat
@@ -136,17 +131,17 @@ float l { getter, setter } =
         }
 
 
-bool : String -> Lens a Bool -> a -> Field (Msg a)
+bool : String -> Lens a Bool -> a -> Html (Msg a)
 bool l { getter, setter } v =
     field l <| checkbox_ (getter v) (Update << setter)
 
 
-checkbox_ : Bool -> (Bool -> msg) -> Field msg
+checkbox_ : Bool -> (Bool -> msg) -> Html msg
 checkbox_ checked msg =
-    Form.controlCheckBox False [] [] [ onCheck msg, Attributes.checked checked ] []
+    Html.input [ Attributes.type_ "checkbox", onCheck msg, Attributes.checked checked ] []
 
 
-select : String -> Dict String b -> Lens a b -> a -> Field (Msg a)
+select : String -> Dict String b -> Lens a b -> a -> Html (Msg a)
 select l dict { getter, setter } v =
     let
         option val =
@@ -156,8 +151,7 @@ select l dict { getter, setter } v =
             Dict.get k dict |> Maybe.withDefault (getter v)
     in
     field l <|
-        controlSelect controlSelectModifiers
-            []
+        Html.select
             [ onInput (Update << setter << get)
             ]
         <|
@@ -165,14 +159,9 @@ select l dict { getter, setter } v =
                 Dict.keys dict
 
 
-field : String -> Control msg -> Field msg
+field : String -> Html msg -> Html msg
 field l control =
-    Form.horizontalFields []
-        [ Form.fieldLabel standard
-            []
-            [ Form.label []
-                [ Html.text l
-                ]
-            ]
-        , Form.fieldBody [] [ Form.field [] [ control ] ]
+    Html.div []
+        [ Html.text l
+        , Html.div [] [ control ]
         ]

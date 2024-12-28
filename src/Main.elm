@@ -8,10 +8,6 @@ import Bms.Preview as Preview
 import Bms.Save exposing (save)
 import Bms.Types exposing (Bms, RawBms, decodeRawBms, defRawBms)
 import Browser
-import Bulma.Styled.CDN as CDN
-import Bulma.Styled.Elements as Bulma exposing (buttonModifiers)
-import Bulma.Styled.Modifiers exposing (loading, primary)
-import Bulma.Styled.Modifiers.Typography exposing (Color(..))
 import Css exposing (..)
 import File exposing (File)
 import File.Select as Select
@@ -118,28 +114,15 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    let
-        button =
-            Bulma.button { buttonModifiers | color = primary }
-    in
     div [ css [ overflow auto, padding (px 10) ] ]
-        [ CDN.stylesheet
-        , button [ onClick FileRequested ] [ text "file" ]
+        [ Html.button [ onClick FileRequested ] [ text "file" ]
         , lazy Preview.view model.bms
         , whenJustHtml model.converted (lazy Preview.view)
-        , Bulma.button
-            { buttonModifiers
-                | state =
-                    if model.state.isConverting then
-                        loading
-
-                    else
-                        buttonModifiers.state
-            }
+        , Html.button
             [ onClick StartConverting ]
             [ text "convert" ]
         , whenHtml (model.converted /= Nothing) <|
-            button [ onClick SaveBms ] [ text "save" ]
+            Html.button [ onClick SaveBms ] [ text "save" ]
         , if model.state.isShowOptions then
             div
                 [ css
