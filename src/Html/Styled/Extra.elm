@@ -1,6 +1,7 @@
 module Html.Styled.Extra exposing (..)
 
-import Html.Styled as Html exposing (Html)
+import Html.Styled as Html exposing (Attribute, Html)
+import Html.Styled.Attributes exposing (css)
 
 
 whenHtml : Bool -> Html msg -> Html msg
@@ -20,3 +21,22 @@ whenJustHtml m f =
 
         _ ->
             Html.div [] []
+
+
+whenAttribute : Bool -> Attribute msg -> Attribute msg
+whenAttribute cond v =
+    if cond then
+        v
+
+    else
+        css []
+
+
+whenJustAttribute : Maybe a -> (a -> Attribute msg) -> Attribute msg
+whenJustAttribute m f =
+    case m of
+        Just x ->
+            f x
+
+        _ ->
+            css []

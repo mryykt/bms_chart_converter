@@ -13,6 +13,7 @@ import File exposing (File)
 import File.Select as Select
 import Html.Styled as Html exposing (Html, div, text)
 import Html.Styled.Attributes exposing (class, css)
+import Html.Styled.Bulma as Bulma
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Extra exposing (whenHtml, whenJustHtml)
 import Html.Styled.Lazy exposing (lazy)
@@ -116,7 +117,7 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [ css [ overflow auto, padding (px 10) ] ]
-        [ Html.button [ class "button is-primary", onClick FileRequested ] [ text "file" ]
+        [ Bulma.file "Choose a file..." FileRequested (Just model.bms.name)
         , lazy Preview.view model.bms
         , whenJustHtml model.converted (lazy Preview.view)
         , Html.button
