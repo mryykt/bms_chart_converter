@@ -122,7 +122,7 @@ view model =
         button =
             Bulma.button { buttonModifiers | color = primary }
     in
-    div [ css [ overflow auto, padding (px 10), margin (px 20) ] ]
+    div [ css [ overflow auto, padding (px 10) ] ]
         [ CDN.stylesheet
         , button [ onClick FileRequested ] [ text "file" ]
         , lazy Preview.view model.bms
@@ -139,7 +139,7 @@ view model =
             [ onClick StartConverting ]
             [ text "convert" ]
         , whenHtml (model.converted /= Nothing) <|
-            button [ onClick SaveBms, css [ margin (px 10) ] ] [ text "save" ]
+            button [ onClick SaveBms ] [ text "save" ]
         , if model.state.isShowOptions then
             div
                 [ css
