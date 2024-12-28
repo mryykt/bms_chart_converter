@@ -18,7 +18,7 @@ type PSide
 
 view : Bms -> Html msg
 view bms =
-    Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <|
+    Html.div [ css [ position relative, height (vh 85), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <|
         List.map (oneMeasure False bms) <|
             fill 0 0 <|
                 Load.separateByMeasure <|
@@ -27,7 +27,7 @@ view bms =
 
 groupedView : Bms -> Html msg
 groupedView bms =
-    Html.div [ css [ position relative, height (vh 90), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <|
+    Html.div [ css [ position relative, height (vh 85), displayFlex, flexWrap wrap, flexDirection columnReverse ] ] <|
         List.map (oneMeasure True bms) <|
             fill 0 0 <|
                 Load.separateByMeasure <|
