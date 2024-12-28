@@ -18,6 +18,7 @@ import Html.Styled.Lazy exposing (lazy)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
 import List.Styled.Extra exposing (whenHtml, whenJustHtml)
+import Process
 import Task
 
 
@@ -88,7 +89,7 @@ update msg ({ state } as model) =
             ( { model | options = OptionsEdit.update msg_ model.options }, Cmd.none )
 
         StartConverting ->
-            ( { model | state = { state | isConverting = True } }, Task.perform (convert model.options >> CompleteConverting) (Task.succeed model.bms) )
+            ( { model | state = { state | isConverting = True } }, Task.perform (convert model.options >> CompleteConverting) (Process.sleep 100 |> Task.andThen (\_ -> Task.succeed model.bms)) )
 
         CompleteConverting converted ->
             ( { model | converted = Just converted, state = { state | isConverting = False } }, Cmd.none )
