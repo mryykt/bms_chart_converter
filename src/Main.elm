@@ -12,7 +12,7 @@ import Css exposing (..)
 import File exposing (File)
 import File.Select as Select
 import Html.Styled as Html exposing (Html, div, text)
-import Html.Styled.Attributes exposing (css)
+import Html.Styled.Attributes exposing (class, css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Lazy exposing (lazy)
 import Json.Decode exposing (Error, decodeValue)
@@ -115,14 +115,23 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [ css [ overflow auto, padding (px 10) ] ]
-        [ Html.button [ onClick FileRequested ] [ text "file" ]
+        [ Html.button [ class "button is-primary", onClick FileRequested ] [ text "file" ]
         , lazy Preview.view model.bms
         , whenJustHtml model.converted (lazy Preview.view)
         , Html.button
-            [ onClick StartConverting ]
+            [ class <|
+                "button "
+                    ++ (if model.state.isConverting then
+                            "is-loading"
+
+                        else
+                            "is-info"
+                       )
+            , onClick StartConverting
+            ]
             [ text "convert" ]
-        , whenHtml (model.converted /= Nothing) <|
-            Html.button [ onClick SaveBms ] [ text "save" ]
+        , whenHtml (not model.state.isConverting && model.converted /= Nothing) <|
+            Html.button [ class "button is-primary", onClick SaveBms ] [ text "save" ]
         , if model.state.isShowOptions then
             div
                 [ css
