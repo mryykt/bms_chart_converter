@@ -1,4 +1,4 @@
-module List.Styled.Extra exposing (..)
+module Html.Styled.Extra exposing (..)
 
 import Html.Styled as Html exposing (Html)
 

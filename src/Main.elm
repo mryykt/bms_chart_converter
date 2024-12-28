@@ -14,10 +14,10 @@ import File.Select as Select
 import Html.Styled as Html exposing (Html, div, text)
 import Html.Styled.Attributes exposing (class, css)
 import Html.Styled.Events exposing (onClick)
+import Html.Styled.Extra exposing (whenHtml, whenJustHtml)
 import Html.Styled.Lazy exposing (lazy)
 import Json.Decode exposing (Error, decodeValue)
 import Json.Encode exposing (Value)
-import List.Styled.Extra exposing (whenHtml, whenJustHtml)
 import Process
 import Task
 
