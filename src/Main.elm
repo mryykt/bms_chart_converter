@@ -34,12 +34,12 @@ type alias Model =
 
 
 type alias State =
-    { isShowOptions : Bool, isConverting : Bool }
+    { tab : Tab, isConverting : Bool }
 
 
 defState : State
 defState =
-    { isShowOptions = False, isConverting = False }
+    { tab = Original, isConverting = False }
 
 
 init : () -> ( Model, Cmd Msg )
@@ -59,6 +59,26 @@ type Msg
     | CompleteConverting Bms
     | SaveBms
     | UpdateState (State -> State)
+    | TabSelected Tab
+
+
+type Tab
+    = Original
+    | Option
+    | Converted
+
+
+tabToString : Tab -> String
+tabToString tab =
+    case tab of
+        Original ->
+            "Original"
+
+        Option ->
+            "Option"
+
+        Converted ->
+            "Converted"
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -80,7 +100,7 @@ update msg ({ state } as model) =
                         data =
                             Load.fromRawData raw
                     in
-                    ( { model | bms = data }, Cmd.none )
+                    ( { model | bms = data, converted = Nothing }, Cmd.none )
 
                 -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
@@ -108,6 +128,9 @@ update msg ({ state } as model) =
         UpdateState setter ->
             ( { model | state = setter state }, Cmd.none )
 
+        TabSelected tab ->
+            ( { model | state = { state | tab = tab } }, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
@@ -117,53 +140,34 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [ css [ overflow auto, padding (px 10) ] ]
-        [ Bulma.file "Choose a file..." FileRequested (Just model.bms.name)
-        , lazy Preview.view model.bms
-        , whenJustHtml model.converted (lazy Preview.view)
-        , Html.button
-            [ class <|
-                "button "
-                    ++ (if model.state.isConverting then
-                            "is-loading"
+        [ div [ class "buttons" ]
+            [ Bulma.file "Choose a file..." FileRequested (Just model.bms.name)
+            , Html.button
+                [ class <|
+                    "button "
+                        ++ (if model.state.isConverting then
+                                "is-loading"
 
-                        else
-                            "is-info"
-                       )
-            , onClick StartConverting
+                            else
+                                "is-info"
+                           )
+                , css [ marginBottom (px 24) ]
+                , onClick StartConverting
+                ]
+                [ text "convert" ]
+            , whenHtml (not model.state.isConverting && model.converted /= Nothing) <|
+                Html.button [ class "button is-primary", css [ marginBottom (px 24) ], onClick SaveBms ] [ text "save" ]
             ]
-            [ text "convert" ]
-        , whenHtml (not model.state.isConverting && model.converted /= Nothing) <|
-            Html.button [ class "button is-primary", onClick SaveBms ] [ text "save" ]
-        , if model.state.isShowOptions then
-            div
-                [ css
-                    [ position fixed
-                    , zIndex (int 200)
-                    , width (pct 70)
-                    , height (pct 100)
-                    , top zero
-                    , right zero
-                    , backgroundColor (rgba 0 0 0 0.7)
-                    ]
-                ]
-                [ OptionsEdit.view model.options |> Html.map EditOptions
-                ]
+        , Bulma.tabs tabToString [ Original, Option, Converted ] TabSelected model.state.tab
+        , case model.state.tab of
+            Original ->
+                lazy Preview.view model.bms
 
-          else
-            div
-                [ css
-                    [ position fixed
-                    , zIndex (int 200)
-                    , width (px 50)
-                    , height (pct 100)
-                    , top zero
-                    , right zero
-                    , backgroundColor (rgba 0 0 0 0.7)
-                    , hover [ cursor pointer ]
-                    ]
-                , onClick (UpdateState <| \x -> { x | isShowOptions = True })
-                ]
-                []
+            Option ->
+                Html.map EditOptions <| OptionsEdit.view model.options
+
+            Converted ->
+                whenJustHtml model.converted (lazy Preview.view)
         ]
 
 
