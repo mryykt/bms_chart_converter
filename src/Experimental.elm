@@ -2,7 +2,7 @@ port module Experimental exposing (..)
 
 import Bms.Converter exposing (convert, groupingNotes)
 import Bms.Converter.Clustering
-import Bms.Converter.Options exposing (Options, defIncreaseScratchOptions, defOptions)
+import Bms.Converter.Options exposing (Options, defOptions)
 import Bms.Converter.Options.Edit as Options
 import Bms.Load as Load
 import Bms.Preview as Preview
@@ -56,7 +56,7 @@ update msg model =
                             Load.fromRawData raw
 
                         options =
-                            { defOptions | inscreaseScratchOptions = { value = defIncreaseScratchOptions, enabled = True } }
+                            { defOptions | inscreaseScratchOptions = Nothing }
                     in
                     ( Model options data Nothing
                     , Task.perform

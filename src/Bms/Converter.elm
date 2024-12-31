@@ -26,11 +26,12 @@ convert options bms =
 
         newGroups =
             groups
-                |> (if options.inscreaseScratchOptions.enabled then
-                        inscreaseScratch options.inscreaseScratchOptions.value
+                |> (case options.inscreaseScratchOptions of
+                        Just v ->
+                            inscreaseScratch v
 
-                    else
-                        identity
+                        _ ->
+                            identity
                    )
 
         name =
@@ -42,7 +43,7 @@ convert options bms =
                     String.rightOfBack "." bms.name
             in
             base
-                ++ (if options.inscreaseScratchOptions.enabled then
+                ++ (if options.inscreaseScratchOptions /= Nothing then
                         "_SC"
 
                     else

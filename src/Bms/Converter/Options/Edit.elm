@@ -1,9 +1,10 @@
 module Bms.Converter.Options.Edit exposing (..)
 
-import Bms.Converter.Clustering.KernelFunction as Kernel
-import Bms.Converter.Options exposing (Optional, Options, defOptions)
+import Bms.Converter.Clustering.KernelFunction as Kernel exposing (KernelFunction)
+import Bms.Converter.Options exposing (IncreaseScratchOptions, Optional, Options, defOptions)
 import Bms.Converter.Options.Lens exposing (..)
 import Dict exposing (Dict)
+import Form.Decoder as D exposing (Decoder)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attributes exposing (class)
 import Html.Styled.Events exposing (onCheck, onInput)
@@ -14,6 +15,58 @@ import Maybe.Extra as Maybe
 type Msg a
     = Default
     | Update (a -> a)
+
+
+type alias Field a =
+    { value : a, invalid : Bool }
+
+
+type alias Form =
+    { bandWidth : Field String
+    , kernelFunction : Field KernelFunction
+
+    --
+    , increaseScratchOptions : Field Bool
+    , minDuration : Field String
+    , isIncludeLn : Field Bool
+    }
+
+
+decoder : Decoder Form (Lens Form (Field String)) Options
+decoder =
+    let
+        increaseScratchOptions : Decoder Form (Lens Form (Field String)) (Maybe IncreaseScratchOptions)
+        increaseScratchOptions =
+            D.custom <|
+                \form ->
+                    if form.increaseScratchOptions.value then
+                        D.run
+                            (D.top IncreaseScratchOptions
+                                |> intField minDuration
+                                |> identityField isIncludeLn
+                                |> D.map Just
+                            )
+                            form
+
+                    else
+                        Ok Nothing
+    in
+    D.top Options |> floatField bandWidth |> identityField kernelFunction |> D.field increaseScratchOptions
+
+
+intField : Lens a (Field String) -> Decoder a (Lens a (Field String)) (Int -> b) -> Decoder a (Lens a (Field String)) b
+intField lens =
+    D.field (D.lift (.value << get lens) (D.int lens))
+
+
+floatField : Lens a (Field String) -> Decoder a (Lens a (Field String)) (Float -> b) -> Decoder a (Lens a (Field String)) b
+floatField lens =
+    D.field (D.lift (.value << get lens) (D.float lens))
+
+
+identityField : Lens a (Field b) -> Decoder a c (b -> d) -> Decoder a c d
+identityField lens =
+    D.field (D.lift (.value << get lens) D.identity)
 
 
 update : Msg Options -> Options -> Options

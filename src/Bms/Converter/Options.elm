@@ -5,7 +5,7 @@ import Bms.TimeObject as TimeObject
 
 
 type alias Options =
-    { bandWidth : Float, kernelFunction : KernelFunction, inscreaseScratchOptions : Optional IncreaseScratchOptions }
+    { bandWidth : Float, kernelFunction : KernelFunction, inscreaseScratchOptions : Maybe IncreaseScratchOptions }
 
 
 type alias Optional a =
@@ -18,7 +18,7 @@ type alias IncreaseScratchOptions =
 
 defOptions : Options
 defOptions =
-    { bandWidth = TimeObject.resolution / 2, kernelFunction = Kernel.Gauss, inscreaseScratchOptions = Optional False defIncreaseScratchOptions }
+    { bandWidth = TimeObject.resolution / 2, kernelFunction = Kernel.Gauss, inscreaseScratchOptions = Nothing }
 
 
 defIncreaseScratchOptions : IncreaseScratchOptions
