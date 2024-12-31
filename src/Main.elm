@@ -1,8 +1,8 @@
 port module Main exposing (..)
 
 import Bms.Converter exposing (convert)
-import Bms.Converter.Options as Options exposing (Options)
-import Bms.Converter.Options.Edit as OptionsEdit
+import Bms.Converter.Options exposing (Options)
+import Bms.Converter.Options.Edit as OptionsEdit exposing (Form)
 import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Save exposing (save)
@@ -30,21 +30,21 @@ port loadBMS : (Value -> msg) -> Sub msg
 
 
 type alias Model =
-    { bms : Bms, options : Options, converted : Maybe Bms, state : State }
+    { bms : Bms, options : Maybe Options, converted : Maybe Bms, state : State }
 
 
 type alias State =
-    { tab : Tab, isConverting : Bool }
+    { tab : Tab, optionsForm : OptionsEdit.Form, isConverting : Bool }
 
 
 defState : State
 defState =
-    { tab = Original, isConverting = False }
+    { tab = Original, optionsForm = OptionsEdit.initForm, isConverting = False }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { bms = Load.fromRawData defRawBms, options = Options.defOptions, converted = Nothing, state = defState }
+    ( { bms = Load.fromRawData defRawBms, options = OptionsEdit.fromForm defState.optionsForm |> Tuple.second, converted = Nothing, state = defState }
     , Cmd.none
     )
 
@@ -54,7 +54,7 @@ type Msg
     | FileSelected File
     | FileLoaded String String
     | LoadBMS (Result Error RawBms)
-    | EditOptions (OptionsEdit.Msg Options)
+    | EditOptions (OptionsEdit.Msg Form)
     | StartConverting
     | CompleteConverting Bms
     | SaveBms
@@ -107,10 +107,23 @@ update msg ({ state } as model) =
                     ( model, Cmd.none )
 
         EditOptions msg_ ->
-            ( { model | options = OptionsEdit.update msg_ model.options }, Cmd.none )
+            let
+                ( newForm, newOptions ) =
+                    OptionsEdit.update msg_ model.state.optionsForm |> OptionsEdit.fromForm
+            in
+            ( { model | options = newOptions, state = { state | optionsForm = newForm } }, Cmd.none )
 
         StartConverting ->
-            ( { model | state = { state | isConverting = True } }, Task.perform (convert model.options >> CompleteConverting) (Process.sleep 100 |> Task.andThen (\_ -> Task.succeed model.bms)) )
+            ( { model | state = { state | isConverting = True } }
+            , (case model.options of
+                Just options ->
+                    Task.perform (convert options >> CompleteConverting)
+
+                Nothing ->
+                    always Cmd.none
+              )
+                (Process.sleep 100 |> Task.andThen (\_ -> Task.succeed model.bms))
+            )
 
         CompleteConverting converted ->
             ( { model | converted = Just converted, state = { state | isConverting = False } }, Cmd.none )
@@ -164,7 +177,7 @@ view model =
                 lazy Preview.view model.bms
 
             Option ->
-                Html.map EditOptions <| OptionsEdit.view model.options
+                Html.map EditOptions <| OptionsEdit.view model.state.optionsForm
 
             Converted ->
                 whenJustHtml model.converted (lazy Preview.view)

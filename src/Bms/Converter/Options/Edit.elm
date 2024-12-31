@@ -1,8 +1,8 @@
 module Bms.Converter.Options.Edit exposing (..)
 
 import Bms.Converter.Clustering.KernelFunction as Kernel exposing (KernelFunction)
-import Bms.Converter.Options exposing (IncreaseScratchOptions, Optional, Options, defOptions)
-import Bms.Converter.Options.Lens exposing (..)
+import Bms.Converter.Options exposing (IncreaseScratchOptions, Optional, Options)
+import Bms.Converter.Options.Lens as Lens exposing (..)
 import Dict exposing (Dict)
 import Form.Decoder as D exposing (Decoder)
 import Html.Styled as Html exposing (Html)
@@ -30,6 +30,31 @@ type alias Form =
     , minDuration : Field String
     , isIncludeLn : Field Bool
     }
+
+
+initField : a -> Field a
+initField x =
+    Field x False
+
+
+initForm : Form
+initForm =
+    { bandWidth = initField "480"
+    , kernelFunction = initField Kernel.Gauss
+    , increaseScratchOptions = initField False
+    , minDuration = initField "8"
+    , isIncludeLn = initField True
+    }
+
+
+fromForm : Form -> ( Form, Maybe Options )
+fromForm form =
+    case D.run decoder form of
+        Ok options ->
+            ( form, Just options )
+
+        Err errs ->
+            ( List.foldl (\errField form_ -> Lens.update errField (\x -> { x | invalid = True }) form_) form errs, Nothing )
 
 
 decoder : Decoder Form (Lens Form (Field String)) Options
@@ -69,18 +94,18 @@ identityField lens =
     D.field (D.lift (.value << get lens) D.identity)
 
 
-update : Msg Options -> Options -> Options
-update msg options =
+update : Msg Form -> Form -> Form
+update msg form =
     case msg of
         Default ->
-            defOptions
+            initForm
 
         Update setter ->
-            setter options
+            setter form
 
 
-view : Options -> Html (Msg Options)
-view options =
+view : Form -> Html (Msg Form)
+view form =
     Html.div []
         []
 
