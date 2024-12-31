@@ -4,7 +4,7 @@ import Bms.Converter.Clustering.KernelFunction as Kernel
 import Bms.Converter.Options exposing (Optional, Options, defOptions)
 import Dict exposing (Dict)
 import Html.Styled as Html exposing (Html)
-import Html.Styled.Attributes as Attributes
+import Html.Styled.Attributes as Attributes exposing (class)
 import Html.Styled.Events exposing (onCheck, onInput)
 import List.Extra as List
 import Maybe.Extra as Maybe
@@ -81,37 +81,37 @@ optional l { getter, setter } v forms =
                             )
                         )
     in
-    field l <|
-        Html.div
-            []
-            [ checkbox_ (getter v).enabled
-                (\b ->
-                    Update
-                        (\y ->
-                            setter
-                                (let
-                                    y_ =
-                                        getter y
-                                 in
-                                 { y_ | enabled = b }
-                                )
-                                y
-                        )
-                )
-            , Html.map f <|
-                (\opt ->
-                    Html.fieldset [ Attributes.disabled <| not opt.enabled ] <| List.map ((|>) opt.value) forms
-                )
-                <|
-                    getter v
-            ]
+    Html.div
+        []
+        [ checkbox_ l
+            (getter v).enabled
+            (\b ->
+                Update
+                    (\y ->
+                        setter
+                            (let
+                                y_ =
+                                    getter y
+                             in
+                             { y_ | enabled = b }
+                            )
+                            y
+                    )
+            )
+        , Html.map f <|
+            (\opt ->
+                Html.fieldset [ Attributes.disabled <| not opt.enabled ] <| List.map ((|>) opt.value) forms
+            )
+            <|
+                getter v
+        ]
 
 
 text : String -> Lens a String -> a -> Html (Msg a)
 text l { getter, setter } v =
     field l <|
         Html.input
-            [ onInput (Update << setter), Attributes.value (getter v) ]
+            [ class "input", onInput (Update << setter), Attributes.value (getter v) ]
             []
 
 
@@ -133,12 +133,12 @@ float l { getter, setter } =
 
 bool : String -> Lens a Bool -> a -> Html (Msg a)
 bool l { getter, setter } v =
-    field l <| checkbox_ (getter v) (Update << setter)
+    checkbox_ l (getter v) (Update << setter)
 
 
-checkbox_ : Bool -> (Bool -> msg) -> Html msg
-checkbox_ checked msg =
-    Html.input [ Attributes.type_ "checkbox", onCheck msg, Attributes.checked checked ] []
+checkbox_ : String -> Bool -> (Bool -> msg) -> Html msg
+checkbox_ label checked msg =
+    field label <| Html.label [ class "checkbox" ] [ Html.input [ Attributes.type_ "checkbox", onCheck msg, Attributes.checked checked ] [] ]
 
 
 select : String -> Dict String b -> Lens a b -> a -> Html (Msg a)
@@ -151,17 +151,19 @@ select l dict { getter, setter } v =
             Dict.get k dict |> Maybe.withDefault (getter v)
     in
     field l <|
-        Html.select
-            [ onInput (Update << setter << get)
+        Html.div [ class "select" ]
+            [ Html.select
+                [ onInput (Update << setter << get)
+                ]
+              <|
+                List.map option <|
+                    Dict.keys dict
             ]
-        <|
-            List.map option <|
-                Dict.keys dict
 
 
 field : String -> Html msg -> Html msg
 field l control =
-    Html.div []
-        [ Html.text l
-        , Html.div [] [ control ]
+    Html.div [ class "field is-horizontal" ]
+        [ Html.div [ class "field-label" ] [ Html.label [ class "label" ] [ Html.text l ] ]
+        , Html.div [ class "field-body" ] [ Html.div [ class "field" ] [ Html.p [ class "control" ] [ control ] ] ]
         ]
