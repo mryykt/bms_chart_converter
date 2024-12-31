@@ -1,8 +1,8 @@
 module Html.Styled.Bulma exposing (file, tabs)
 
 import Html.Styled as Html exposing (Html, a, button, div, label, li, span, ul)
-import Html.Styled.Attributes exposing (class, type_, value)
-import Html.Styled.Events exposing (onClick, onInput)
+import Html.Styled.Attributes exposing (class)
+import Html.Styled.Events exposing (onClick)
 import Html.Styled.Extra exposing (whenAttribute, whenJustHtml)
 
 

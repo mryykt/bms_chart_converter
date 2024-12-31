@@ -2,6 +2,7 @@ module Bms.Converter.Options.Edit exposing (..)
 
 import Bms.Converter.Clustering.KernelFunction as Kernel
 import Bms.Converter.Options exposing (Optional, Options, defOptions)
+import Bms.Converter.Options.Lens exposing (..)
 import Dict exposing (Dict)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attributes exposing (class)
@@ -13,18 +14,6 @@ import Maybe.Extra as Maybe
 type Msg a
     = Default
     | Update (a -> a)
-
-
-type alias Getter a b =
-    a -> b
-
-
-type alias Setter a b =
-    b -> a -> a
-
-
-type alias Lens a b =
-    { getter : Getter a b, setter : Setter a b }
 
 
 update : Msg Options -> Options -> Options
@@ -40,25 +29,7 @@ update msg options =
 view : Options -> Html (Msg Options)
 view options =
     Html.div []
-        [ float "band width" { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } } options
-        , select "kernel function"
-            (Dict.fromList
-                [ ( "Gauss", Kernel.Gauss )
-                , ( "Linear", Kernel.Linear )
-                , ( "Exp", Kernel.Exp )
-                , ( "Tophat", Kernel.Tophat )
-                , ( "Epanechnikov", Kernel.Epanechnikov )
-                ]
-            )
-            { getter = .kernelFunction, setter = \x y -> { y | kernelFunction = x } }
-            options
-        , optional "increase scratch"
-            { getter = .inscreaseScratchOptions, setter = \x y -> { y | inscreaseScratchOptions = x } }
-            options
-            [ int "min duration" { getter = .minDuration, setter = \x y -> { y | minDuration = x } }
-            , bool "including long-note" { getter = .isIncludingLn, setter = \x y -> { y | isIncludingLn = x } }
-            ]
-        ]
+        []
 
 
 optional : String -> Lens a (Optional b) -> a -> List (b -> Html (Msg b)) -> Html (Msg a)
