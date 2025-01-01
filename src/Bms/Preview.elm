@@ -1,4 +1,4 @@
-module Bms.Preview exposing (groupedView, view)
+module Bms.Preview exposing (diffView, groupedView, view)
 
 import Array
 import Bms.Load as Load
@@ -32,6 +32,56 @@ groupedView bms =
             fill 0 0 <|
                 Load.separateByMeasure <|
                     Load.separeteLn bms.lines bms.notes
+
+
+diffView : Bms -> Bms -> Html msg
+diffView old new =
+    let
+        comp a b =
+            case compare a.time b.time of
+                GT ->
+                    GT
+
+                LT ->
+                    LT
+
+                EQ ->
+                    compare (key a.ext) (key b.ext)
+
+        oldChart =
+            old.notes |> List.sortWith comp
+
+        newChart =
+            new.notes |> List.sortWith comp
+
+        makeDiff oc nc =
+            case ( oc, nc ) of
+                ( h1 :: t1, h2 :: t2 ) ->
+                    if h1.time > h2.time then
+                        { h2 | value = 1 } :: makeDiff oc t2
+
+                    else if h1.time < h2.time then
+                        { h1 | value = 0 } :: makeDiff t1 nc
+
+                    else if h1.ext == h2.ext then
+                        { h1 | value = 5 } :: makeDiff t1 t2
+
+                    else if key h1.ext > key h2.ext then
+                        { h2 | value = 1 } :: makeDiff oc t2
+
+                    else if key h1.ext < key h2.ext then
+                        { h1 | value = 0 } :: makeDiff t1 nc
+
+                    else
+                        { h1 | value = 0 } :: { h2 | value = 1 } :: makeDiff t1 t2
+
+                ( [], _ ) ->
+                    List.map (\note -> { note | value = 1 }) nc
+
+                ( _, [] ) ->
+                    List.map (\note -> { note | value = 0 }) oc
+    in
+    groupedView { new | notes = makeDiff oldChart newChart }
 
 
 oneMeasure : Bool -> Bms -> ( Int, List Note ) -> Html msg
@@ -346,6 +396,7 @@ groupedNoteColor note =
                 , rgb 0 0 255
                 , rgb 255 255 0
                 , rgb 0 255 255
+                , rgb 255 255 255
                 , rgb 127 0 0
                 , rgb 0 127 0
                 , rgb 0 0 127

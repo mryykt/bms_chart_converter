@@ -67,6 +67,7 @@ type Tab
     = Original
     | Option
     | Converted
+    | Diff
 
 
 tabToString : Tab -> String
@@ -80,6 +81,9 @@ tabToString tab =
 
         Converted ->
             "Converted"
+
+        Diff ->
+            "Diff"
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -177,7 +181,7 @@ view model =
             tabs =
                 case model.converted of
                     Just _ ->
-                        [ Original, Option, Converted ]
+                        [ Original, Option, Converted, Diff ]
 
                     Nothing ->
                         [ Original, Option ]
@@ -192,6 +196,9 @@ view model =
 
             Converted ->
                 whenJustHtml model.converted (lazy Preview.view)
+
+            Diff ->
+                whenJustHtml model.converted (lazy (Preview.diffView model.bms))
         ]
 
 
