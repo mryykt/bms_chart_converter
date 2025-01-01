@@ -1,7 +1,7 @@
 module Bms.Converter.Options.Edit exposing (..)
 
 import Bms.Converter.Clustering.KernelFunction as Kernel exposing (KernelFunction)
-import Bms.Converter.Options exposing (IncreaseScratchOptions, Optional, Options)
+import Bms.Converter.Options exposing (IncreaseScratchOptions, Options)
 import Bms.Converter.Options.Lens as Lens exposing (..)
 import Dict exposing (Dict)
 import Form.Decoder as D exposing (Decoder)
@@ -107,82 +107,39 @@ update msg form =
 view : Form -> Html (Msg Form)
 view form =
     Html.div []
-        []
-
-
-optional : String -> Lens a (Optional b) -> a -> List (b -> Html (Msg b)) -> Html (Msg a)
-optional l { getter, setter } v forms =
-    let
-        f : Msg b -> Msg a
-        f msg =
-            case msg of
-                Default ->
-                    Default
-
-                Update setter_ ->
-                    Update
-                        (setter
-                            (let
-                                y =
-                                    getter v
-                             in
-                             { y | value = setter_ y.value }
-                            )
-                        )
-    in
-    Html.div
-        []
-        [ checkbox_ l
-            (getter v).enabled
-            (\b ->
-                Update
-                    (\y ->
-                        setter
-                            (let
-                                y_ =
-                                    getter y
-                             in
-                             { y_ | enabled = b }
-                            )
-                            y
-                    )
+        [ text "number" "band width" bandWidth form
+        , select "kernel function"
+            (Dict.fromList
+                [ ( "Gauss", Kernel.Gauss )
+                , ( "Exponetail", Kernel.Exp )
+                , ( "Linear", Kernel.Linear )
+                , ( "Tophat", Kernel.Tophat )
+                , ( "Epanechnikov", Kernel.Epanechnikov )
+                ]
             )
-        , Html.map f <|
-            (\opt ->
-                Html.fieldset [ Attributes.disabled <| not opt.enabled ] <| List.map ((|>) opt.value) forms
-            )
-            <|
-                getter v
+            kernelFunction
+            form
+        , bool "increase scratch" { getter = .increaseScratchOptions, setter = \x y -> { y | increaseScratchOptions = x } } form
+        , text "number" "minimum duration" minDuration form
+        , bool "include long-note" isIncludeLn form
         ]
 
 
-text : String -> Lens a String -> a -> Html (Msg a)
-text l { getter, setter } v =
+text : String -> String -> Lens a (Field String) -> a -> Html (Msg a)
+text typ l lens v =
     field l <|
         Html.input
-            [ class "input", onInput (Update << setter), Attributes.value (getter v) ]
+            [ class "input", Attributes.type_ typ, onInput (Update << (Lens.compose value lens).setter), Attributes.value (.value <| lens.getter v) ]
             []
 
 
-int : String -> Lens a Int -> a -> Html (Msg a)
-int l { getter, setter } =
-    text l
-        { getter = getter >> String.fromInt
-        , setter = setter << Maybe.withDefault 0 << String.toInt
-        }
-
-
-float : String -> Lens a Float -> a -> Html (Msg a)
-float l { getter, setter } =
-    text l
-        { getter = getter >> String.fromFloat
-        , setter = setter << Maybe.withDefault 0 << String.toFloat
-        }
-
-
-bool : String -> Lens a Bool -> a -> Html (Msg a)
-bool l { getter, setter } v =
-    checkbox_ l (getter v) (Update << setter)
+bool : String -> Lens a (Field Bool) -> a -> Html (Msg a)
+bool l lens v =
+    let
+        lens_ =
+            Lens.compose value lens
+    in
+    checkbox_ l (Lens.get lens_ v) (Update << lens_.setter)
 
 
 checkbox_ : String -> Bool -> (Bool -> msg) -> Html msg
@@ -190,19 +147,19 @@ checkbox_ label checked msg =
     field label <| Html.label [ class "checkbox" ] [ Html.input [ Attributes.type_ "checkbox", onCheck msg, Attributes.checked checked ] [] ]
 
 
-select : String -> Dict String b -> Lens a b -> a -> Html (Msg a)
+select : String -> Dict String b -> Lens a (Field b) -> a -> Html (Msg a)
 select l dict { getter, setter } v =
     let
         option val =
-            Html.option [ Attributes.value val, Attributes.selected (Dict.get val dict |> Maybe.unwrap False ((==) (getter v))) ] [ Html.text val ]
+            Html.option [ Attributes.value val, Attributes.selected (Dict.get val dict |> Maybe.unwrap False ((==) (getter v |> .value))) ] [ Html.text val ]
 
         get k =
-            Dict.get k dict |> Maybe.withDefault (getter v)
+            Dict.get k dict |> Maybe.withDefault (getter v |> .value)
     in
     field l <|
         Html.div [ class "select" ]
             [ Html.select
-                [ onInput (Update << setter << get)
+                [ onInput (Update << (Lens.compose value { getter = getter, setter = setter }).setter << get)
                 ]
               <|
                 List.map option <|

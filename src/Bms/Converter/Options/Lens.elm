@@ -33,6 +33,11 @@ update { getter, setter } f x =
     setter (f <| getter x) x
 
 
+value : Lens { a | value : b } b
+value =
+    { getter = .value, setter = \x y -> { y | value = x } }
+
+
 bandWidth : Lens { a | bandWidth : b } b
 bandWidth =
     { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } }
