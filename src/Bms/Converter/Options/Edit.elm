@@ -128,8 +128,8 @@ view form =
 
 
 text : String -> String -> Lens a (Field String) -> a -> Html (Msg a)
-text typ l lens v =
-    field l <|
+text typ label lens v =
+    field label <|
         Html.input
             [ class "input"
             , Attributes.type_ typ
@@ -140,12 +140,12 @@ text typ l lens v =
 
 
 bool : String -> Lens a (Field Bool) -> a -> Html (Msg a)
-bool l lens v =
+bool label lens v =
     let
         lens_ =
             Lens.compose value lens
     in
-    field l <|
+    field label <|
         Html.label [ class "checkbox" ]
             [ Html.input
                 [ Attributes.type_ "checkbox"
@@ -157,7 +157,7 @@ bool l lens v =
 
 
 select : String -> Dict String b -> Lens a (Field b) -> a -> Html (Msg a)
-select l dict lens v =
+select label dict lens v =
     let
         option val =
             Html.option
@@ -173,7 +173,7 @@ select l dict lens v =
         lens_ =
             Lens.compose value lens
     in
-    field l <|
+    field label <|
         Html.div [ class "select" ]
             [ Html.select
                 [ onInput (Update << lens_.setter << get)
@@ -185,8 +185,8 @@ select l dict lens v =
 
 
 field : String -> Html msg -> Html msg
-field l control =
+field label control =
     Html.div [ class "field is-horizontal" ]
-        [ Html.div [ class "field-label" ] [ Html.label [ class "label" ] [ Html.text l ] ]
+        [ Html.div [ class "field-label" ] [ Html.label [ class "label" ] [ Html.text label ] ]
         , Html.div [ class "field-body" ] [ Html.div [ class "field" ] [ Html.p [ class "control" ] [ control ] ] ]
         ]
