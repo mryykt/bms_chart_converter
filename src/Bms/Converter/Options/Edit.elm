@@ -1,11 +1,9 @@
 module Bms.Converter.Options.Edit exposing (..)
 
-import Bms.Converter.Clustering.KernelFunction as Kernel exposing (KernelFunction)
-import Bms.Converter.Options exposing (IncreaseScratchOptions, Options)
+import Bms.Converter.Clustering.KernelFunction as Kernel
 import Bms.Converter.Options.Form as Form exposing (Field, Form)
 import Bms.Converter.Options.Lens as Lens exposing (..)
 import Dict exposing (Dict)
-import Form.Decoder as D exposing (Decoder)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attributes exposing (class)
 import Html.Styled.Events exposing (onCheck, onInput)
