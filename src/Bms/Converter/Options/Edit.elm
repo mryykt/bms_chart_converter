@@ -131,7 +131,11 @@ text : String -> String -> Lens a (Field String) -> a -> Html (Msg a)
 text typ l lens v =
     field l <|
         Html.input
-            [ class "input", Attributes.type_ typ, onInput (Update << (Lens.compose value lens).setter), Attributes.value (.value <| lens.getter v) ]
+            [ class "input"
+            , Attributes.type_ typ
+            , onInput (Update << (Lens.compose value lens).setter)
+            , Attributes.value (.value <| lens.getter v)
+            ]
             []
 
 
@@ -141,27 +145,38 @@ bool l lens v =
         lens_ =
             Lens.compose value lens
     in
-    checkbox_ l (Lens.get lens_ v) (Update << lens_.setter)
-
-
-checkbox_ : String -> Bool -> (Bool -> msg) -> Html msg
-checkbox_ label checked msg =
-    field label <| Html.label [ class "checkbox" ] [ Html.input [ Attributes.type_ "checkbox", onCheck msg, Attributes.checked checked ] [] ]
+    field l <|
+        Html.label [ class "checkbox" ]
+            [ Html.input
+                [ Attributes.type_ "checkbox"
+                , onCheck (Update << lens_.setter)
+                , Attributes.checked (Lens.get lens_ v)
+                ]
+                []
+            ]
 
 
 select : String -> Dict String b -> Lens a (Field b) -> a -> Html (Msg a)
-select l dict { getter, setter } v =
+select l dict lens v =
     let
         option val =
-            Html.option [ Attributes.value val, Attributes.selected (Dict.get val dict |> Maybe.unwrap False ((==) (getter v |> .value))) ] [ Html.text val ]
+            Html.option
+                [ Attributes.value val
+                , Attributes.selected
+                    (Dict.get val dict |> Maybe.unwrap False ((==) (Lens.get lens_ v)))
+                ]
+                [ Html.text val ]
 
         get k =
-            Dict.get k dict |> Maybe.withDefault (getter v |> .value)
+            Dict.get k dict |> Maybe.withDefault (Lens.get lens_ v)
+
+        lens_ =
+            Lens.compose value lens
     in
     field l <|
         Html.div [ class "select" ]
             [ Html.select
-                [ onInput (Update << (Lens.compose value { getter = getter, setter = setter }).setter << get)
+                [ onInput (Update << lens_.setter << get)
                 ]
               <|
                 List.map option <|
