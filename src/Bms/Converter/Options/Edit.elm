@@ -120,8 +120,10 @@ view form =
             kernelFunction
             form
         , bool "increase scratch" { getter = .increaseScratchOptions, setter = \x y -> { y | increaseScratchOptions = x } } form
-        , text "number" "minimum duration" minDuration form
-        , bool "include long-note" isIncludeLn form
+        , Html.fieldset [ Attributes.disabled <| not <| .value <| .increaseScratchOptions form ]
+            [ text "number" "minimum duration" minDuration form
+            , bool "include long-note" isIncludeLn form
+            ]
         ]
 
 
