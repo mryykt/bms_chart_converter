@@ -1,4 +1,4 @@
-module Bms.Converter.Options.Edit exposing (..)
+module Bms.Converter.Options.Edit exposing (Msg, update, view)
 
 import Bms.Converter.Clustering.KernelFunction as Kernel
 import Bms.Converter.Options.Form as Form exposing (Field, Form)
