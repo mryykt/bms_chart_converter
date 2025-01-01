@@ -2,7 +2,8 @@ port module Main exposing (..)
 
 import Bms.Converter exposing (convert)
 import Bms.Converter.Options exposing (Options)
-import Bms.Converter.Options.Edit as OptionsEdit exposing (Form)
+import Bms.Converter.Options.Edit as OptionsEdit
+import Bms.Converter.Options.Form as Form exposing (Form)
 import Bms.Load as Load
 import Bms.Preview as Preview
 import Bms.Save exposing (save)
@@ -34,17 +35,17 @@ type alias Model =
 
 
 type alias State =
-    { tab : Tab, optionsForm : OptionsEdit.Form, isConverting : Bool }
+    { tab : Tab, optionsForm : Form, isConverting : Bool }
 
 
 defState : State
 defState =
-    { tab = Original, optionsForm = OptionsEdit.initForm, isConverting = False }
+    { tab = Original, optionsForm = Form.init, isConverting = False }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { bms = Load.fromRawData defRawBms, options = OptionsEdit.fromForm defState.optionsForm |> Tuple.second, converted = Nothing, state = defState }
+    ( { bms = Load.fromRawData defRawBms, options = Form.from defState.optionsForm |> Tuple.second, converted = Nothing, state = defState }
     , Cmd.none
     )
 
@@ -109,7 +110,7 @@ update msg ({ state } as model) =
         EditOptions msg_ ->
             let
                 ( newForm, newOptions ) =
-                    OptionsEdit.update msg_ model.state.optionsForm |> OptionsEdit.fromForm
+                    OptionsEdit.update msg_ model.state.optionsForm |> Form.from
             in
             ( { model | options = newOptions, state = { state | optionsForm = newForm } }, Cmd.none )
 
