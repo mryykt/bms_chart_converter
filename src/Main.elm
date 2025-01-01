@@ -13,7 +13,7 @@ import Css exposing (..)
 import File exposing (File)
 import File.Select as Select
 import Html.Styled as Html exposing (Html, div, text)
-import Html.Styled.Attributes exposing (class, css)
+import Html.Styled.Attributes as Attributes exposing (class, css)
 import Html.Styled.Bulma as Bulma
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Extra exposing (whenHtml, whenJustHtml)
@@ -165,6 +165,7 @@ view model =
                             else
                                 "is-info"
                            )
+                , Attributes.disabled (model.options == Nothing)
                 , css [ marginBottom (px 24) ]
                 , onClick StartConverting
                 ]
@@ -172,7 +173,16 @@ view model =
             , whenHtml (not model.state.isConverting && model.converted /= Nothing) <|
                 Html.button [ class "button is-primary", css [ marginBottom (px 24) ], onClick SaveBms ] [ text "save" ]
             ]
-        , Bulma.tabs tabToString [ Original, Option, Converted ] TabSelected model.state.tab
+        , let
+            tabs =
+                case model.converted of
+                    Just _ ->
+                        [ Original, Option, Converted ]
+
+                    Nothing ->
+                        [ Original, Option ]
+          in
+          Bulma.tabs tabToString tabs TabSelected model.state.tab
         , case model.state.tab of
             Original ->
                 lazy Preview.view model.bms
