@@ -33,9 +33,9 @@ update { getter, setter } f x =
     setter (f <| getter x) x
 
 
-value : Lens { a | value : b } b
+value : Lens { a | value : b, invalid : Bool } b
 value =
-    { getter = .value, setter = \x y -> { y | value = x } }
+    { getter = .value, setter = \x y -> { y | value = x, invalid = False } }
 
 
 bandWidth : Lens { a | bandWidth : b } b
