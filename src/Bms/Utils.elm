@@ -10,6 +10,23 @@ import List.Nonempty.Extra as Nonempty
 import Maybe.Extra as Maybe
 
 
+
+--------------------------------------------------------
+--- function about objects --------------------------------
+--------------------------------------------------------
+
+
+sort : List (Object x v) -> List (Object x v)
+sort =
+    List.sortBy .time
+
+
+
+--------------------------------------------------------
+--- function about note --------------------------------
+--------------------------------------------------------
+
+
 key : NoteType -> Int
 key nt =
     case nt of
@@ -28,11 +45,6 @@ setKey k nt =
 
         Long _ l t ->
             Long k l t
-
-
-sort : List (Object x v) -> List (Object x v)
-sort =
-    List.sortBy .time
 
 
 adjustKey : ChartType -> Int -> Int
@@ -106,6 +118,12 @@ key10 =
     key5 ++ [ ( 42, 36 ) ]
 
 
+
+--------------------------------------------------------
+--- predicate between notes ----------------------------
+--------------------------------------------------------
+
+
 isLn : NoteType -> Bool
 isLn nt =
     case nt of
@@ -121,16 +139,6 @@ doujiOshi =
     Nonempty.toList >> List.foldl2 (\x y acc -> acc || Maybe.unwrap False (.time >> (==) x.time) y) False
 
 
-minDurationOfGroup : ListNonempty Note -> Float
-minDurationOfGroup =
-    Nonempty.toList >> List.foldl2 (\x y acc -> Maybe.unwrap acc (flip TimeObject.diff x >> min acc) y) 1000
-
-
-groupLength : ListNonempty Note -> Float
-groupLength notes =
-    groupRange notes |> uncurry (flip (-))
-
-
 isOverlappingGroup : ListNonempty Note -> ListNonempty Note -> Bool
 isOverlappingGroup notes1 notes2 =
     let
@@ -141,6 +149,22 @@ isOverlappingGroup notes1 notes2 =
             groupRange notes2
     in
     not (h1 > t2 || h2 > t1)
+
+
+
+--------------------------------------------------------
+--- function between notes -----------------------------
+--------------------------------------------------------
+
+
+minDurationOfGroup : ListNonempty Note -> Float
+minDurationOfGroup =
+    Nonempty.toList >> List.foldl2 (\x y acc -> Maybe.unwrap acc (flip TimeObject.diff x >> min acc) y) 1000
+
+
+groupLength : ListNonempty Note -> Float
+groupLength notes =
+    groupRange notes |> uncurry (flip (-))
 
 
 groupRange : ListNonempty Note -> ( Float, Float )
