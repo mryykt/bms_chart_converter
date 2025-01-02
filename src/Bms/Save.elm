@@ -11,6 +11,7 @@ import List.Extra as List
 import List.Extra2 as List
 import List.Nonempty as Nonempty exposing (ListNonempty)
 import List.Nonempty.Extra as Nonempty
+import String.Extra2 as String
 
 
 save : Bms -> Cmd msg
@@ -100,7 +101,7 @@ oneLine : Int -> Int -> Int -> Dict Int String -> String
 oneLine measure channel split datas =
     "#"
         ++ String.padLeft 3 '0' (String.fromInt measure)
-        ++ baseToString 36 channel
+        ++ String.baseToString 36 channel
         ++ ":"
         ++ String.concat (List.map (flip Dict.get datas >> Maybe.withDefault "00") (List.range 0 <| split - 1))
 
@@ -124,7 +125,7 @@ toRawData bms =
                 Normal n ->
                     [ { measure = note.measure
                       , fraction = TimeObject.getFraction bms.lines note
-                      , value = baseToString 36 note.value
+                      , value = String.baseToString 36 note.value
                       , channel =
                             Bms.reverseAdjustKey bms.chartType n
                                 + 36
@@ -147,12 +148,12 @@ toRawData bms =
                     in
                     [ { measure = note.measure
                       , fraction = TimeObject.getFraction bms.lines note
-                      , value = baseToString 36 note.value
+                      , value = String.baseToString 36 note.value
                       , channel = channel
                       }
                     , { measure = back.measure
                       , fraction = TimeObject.getFraction bms.lines back
-                      , value = baseToString 36 tv
+                      , value = String.baseToString 36 tv
                       , channel = channel
                       }
                     ]

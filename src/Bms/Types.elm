@@ -18,11 +18,11 @@ module Bms.Types exposing
 
 import Array exposing (Array)
 import Bms.TimeObject exposing (TimeObject)
-import Bms.Utils exposing (base)
 import Dict exposing (Dict)
 import Json.Decode as D exposing (Decoder)
 import List.Extra as List
 import Maybe.Extra as Maybe
+import String.Extra2 as String
 import Tuple
 
 
@@ -143,7 +143,7 @@ decodeRawObject =
         (D.field "measure" D.int)
         (D.field "fraction" D.float)
         (D.field "value" D.string)
-        (D.field "channel" <| D.map (base 36) D.string)
+        (D.field "channel" <| D.map (String.base 36) D.string)
 
 
 sort : List (Object x v) -> List (Object x v)

@@ -3,11 +3,11 @@ module Bms.Load exposing (fromRawData, separateByMeasure, separeteLn)
 import Array exposing (Array)
 import Bms.TimeObject as TimeObject
 import Bms.Types as Bms exposing (Bms, ChartType(..), Note, NoteType(..), Object, RawBms)
-import Bms.Utils exposing (base)
 import Dict
 import List.Extra as List
 import Maybe.Extra as Maybe
 import String.Extra as String
+import String.Extra2 as String
 
 
 fromRawData : RawBms -> Bms
@@ -29,7 +29,7 @@ fromRawData { name, header, mlens, data } =
                 (\x ->
                     let
                         value =
-                            base 36 x.value
+                            String.base 36 x.value
                     in
                     { time = TimeObject.fromMeasureAndFraction lines x.measure x.fraction
                     , measure = x.measure
@@ -83,12 +83,12 @@ fromRawData { name, header, mlens, data } =
                 Key5
 
         lnobj =
-            Dict.get "lnobj" header |> Maybe.andThen List.last |> Maybe.map (base 36)
+            Dict.get "lnobj" header |> Maybe.andThen List.last |> Maybe.map (String.base 36)
 
         waves =
             Dict.filter (\k _ -> String.startsWith "wav" k) header
                 |> Dict.toList
-                |> List.filterMap (\( k, v ) -> Maybe.map (Tuple.pair <| base 36 (String.dropLeft 3 k)) <| List.last v)
+                |> List.filterMap (\( k, v ) -> Maybe.map (Tuple.pair <| String.base 36 (String.dropLeft 3 k)) <| List.last v)
                 |> Dict.fromList
     in
     { name = name
