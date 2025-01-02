@@ -4,6 +4,7 @@ module Bms.Converter exposing
     )
 
 import Basics.Extra exposing (..)
+import Basics.Extra2 exposing (ifelse, just)
 import Bms.Converter.Clustering
 import Bms.Converter.Options exposing (IncreaseScratchOptions, Options)
 import Bms.TimeObject as TimeObject
@@ -26,13 +27,7 @@ convert options bms =
 
         newGroups =
             groups
-                |> (case options.inscreaseScratchOptions of
-                        Just v ->
-                            inscreaseScratch v
-
-                        _ ->
-                            identity
-                   )
+                |> just options.inscreaseScratchOptions inscreaseScratch identity
 
         name =
             let
@@ -43,12 +38,7 @@ convert options bms =
                     String.rightOfBack "." bms.name
             in
             base
-                ++ (if options.inscreaseScratchOptions /= Nothing then
-                        "_SC"
-
-                    else
-                        ""
-                   )
+                ++ ifelse (options.inscreaseScratchOptions /= Nothing) "_SC" ""
                 ++ "."
                 ++ ext
     in

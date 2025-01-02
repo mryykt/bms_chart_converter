@@ -1,7 +1,7 @@
 module Bms.Preview exposing (diffView, groupedView, view)
 
 import Array
-import Basics.Extra2 exposing (lessThan)
+import Basics.Extra2 exposing (ifelse, lessThan)
 import Bms.Load as Load
 import Bms.TimeObject as TimeObject
 import Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), key, setKey)
@@ -145,12 +145,7 @@ toLanes pSide bms notes =
         |> List.map (\( a, b ) -> ( key a.ext, a :: b ))
         |> List.sortBy Tuple.first
         |> fill minValue maxValue
-        |> (if pSide == Right then
-                rightScratch
-
-            else
-                identity
-           )
+        |> ifelse (pSide == Right) rightScratch identity
 
 
 separator : Html msg

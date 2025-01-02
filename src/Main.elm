@@ -1,5 +1,6 @@
 port module Main exposing (..)
 
+import Basics.Extra2 exposing (ifelse, just)
 import Bms.Converter exposing (convert)
 import Bms.Converter.Options exposing (Options)
 import Bms.Converter.Options.Edit as OptionsEdit
@@ -117,7 +118,6 @@ update msg ({ state } as model) =
                     , Cmd.none
                     )
 
-                -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->
                     ( model, Cmd.none )
 
@@ -130,13 +130,9 @@ update msg ({ state } as model) =
 
         StartConverting ->
             ( { model | state = { state | isConverting = True } }
-            , (case model.options of
-                Just options ->
-                    Task.perform (convert options >> CompleteConverting)
-
-                Nothing ->
-                    always Cmd.none
-              )
+            , just model.options
+                (\options -> Task.perform <| CompleteConverting << convert options)
+                (always Cmd.none)
                 (Process.sleep 100 |> Task.andThen (\_ -> Task.succeed model.bms))
             )
 
@@ -171,14 +167,8 @@ view model =
         [ div [ class "buttons" ]
             [ Bulma.file "Choose a file..." FileRequested (Just model.bms.name)
             , Html.button
-                [ class <|
-                    "button "
-                        ++ (if model.state.isConverting then
-                                "is-loading"
-
-                            else
-                                "is-info"
-                           )
+                [ class "button"
+                , class <| ifelse model.state.isConverting "is-loading" "is-info"
                 , Attributes.disabled (model.options == Nothing)
                 , css [ marginBottom (px 24) ]
                 , onClick StartConverting
@@ -190,19 +180,11 @@ view model =
         , let
             tabs =
                 [ Original, Option ]
-                    ++ (case model.converted of
-                            Just converted ->
-                                Converted
-                                    :: (if model.bms.chartType == converted.chartType then
-                                            [ Diff ]
-
-                                        else
-                                            []
-                                       )
-
-                            Nothing ->
-                                []
-                       )
+                    ++ just model.converted
+                        (\converted ->
+                            Converted :: ifelse (model.bms.chartType == converted.chartType) [ Diff ] []
+                        )
+                        []
           in
           Bulma.tabs tabToString tabs TabSelected model.state.tab
         , case model.state.tab of
