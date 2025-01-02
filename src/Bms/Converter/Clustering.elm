@@ -1,5 +1,6 @@
 module Bms.Converter.Clustering exposing (..)
 
+import Basics.Extra2 exposing (lessThan)
 import Bms.Converter.Clustering.KernelFunction as Kernel exposing (KernelFunction)
 import Bms.TimeObject as TimeObject
 import List.Extra as List
@@ -27,7 +28,7 @@ clustering bandWidth kernel f xs =
             localMinimumPoints dens mint maxt (TimeObject.resolution / 10)
 
         helper t ( group, ungroup ) =
-            List.span (f >> (>) t) ungroup |> (\( group_, ungroup_ ) -> ( group ++ [ group_ ], ungroup_ ))
+            List.span (f >> lessThan t) ungroup |> (\( group_, ungroup_ ) -> ( group ++ [ group_ ], ungroup_ ))
     in
     List.foldl helper ( [], Nonempty.toList xs ) lmps |> (\( a, b ) -> a ++ [ b ]) |> List.filterMap Nonempty.fromList
 

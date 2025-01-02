@@ -1,6 +1,7 @@
 module Bms.Preview exposing (diffView, groupedView, view)
 
 import Array
+import Basics.Extra2 exposing (lessThan)
 import Bms.Load as Load
 import Bms.TimeObject as TimeObject
 import Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), key, setKey)
@@ -230,7 +231,7 @@ whenStyle cond style =
 
 separateForDP : List Note -> ( List Note, List Note )
 separateForDP =
-    List.partition ((>) 36 << key << .ext) >> Tuple.mapSecond (List.map (\n -> { n | ext = setKey (key n.ext - 36) n.ext }))
+    List.partition (lessThan 36 << key << .ext) >> Tuple.mapSecond (List.map (\n -> { n | ext = setKey (key n.ext - 36) n.ext }))
 
 
 rightScratch : List ( Int, List Note ) -> List ( Int, List Note )
