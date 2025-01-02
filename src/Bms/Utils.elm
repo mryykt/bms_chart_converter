@@ -1,7 +1,12 @@
 module Bms.Utils exposing (..)
 
-import Bms.Types exposing (ChartType(..), NoteType(..), Object)
+import Basics.Extra exposing (..)
+import Bms.TimeObject as TimeObject
+import Bms.Types exposing (ChartType(..), Note, NoteType(..), Object)
 import List.Extra as List
+import List.Extra2 as List
+import List.Nonempty as Nonempty exposing (ListNonempty)
+import List.Nonempty.Extra as Nonempty
 import Maybe.Extra as Maybe
 
 
@@ -99,3 +104,54 @@ key14 =
 key10 : List ( Int, Int )
 key10 =
     key5 ++ [ ( 42, 36 ) ]
+
+
+isLn : NoteType -> Bool
+isLn nt =
+    case nt of
+        Long _ _ _ ->
+            True
+
+        _ ->
+            False
+
+
+doujiOshi : ListNonempty Note -> Bool
+doujiOshi =
+    Nonempty.toList >> List.foldl2 (\x y acc -> acc || Maybe.unwrap False (.time >> (==) x.time) y) False
+
+
+minDurationOfGroup : ListNonempty Note -> Float
+minDurationOfGroup =
+    Nonempty.toList >> List.foldl2 (\x y acc -> Maybe.unwrap acc (flip TimeObject.diff x >> min acc) y) 1000
+
+
+groupLength : ListNonempty Note -> Float
+groupLength notes =
+    groupRange notes |> uncurry (flip (-))
+
+
+isOverlappingGroup : ListNonempty Note -> ListNonempty Note -> Bool
+isOverlappingGroup notes1 notes2 =
+    let
+        ( h1, t1 ) =
+            groupRange notes1
+
+        ( h2, t2 ) =
+            groupRange notes2
+    in
+    not (h1 > t2 || h2 > t1)
+
+
+groupRange : ListNonempty Note -> ( Float, Float )
+groupRange =
+    let
+        lastTimeOfNote note =
+            case note.ext of
+                Long _ l _ ->
+                    note.time + l
+
+                _ ->
+                    note.time
+    in
+    Nonempty.foldl (\note -> Tuple.mapBoth (min note.time) (max (lastTimeOfNote note))) ( 999999, 0 )

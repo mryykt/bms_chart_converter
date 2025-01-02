@@ -92,16 +92,16 @@ inscreaseScratch options groups =
         ( willScratchGroups, willKeyGroups ) =
             List.partition
                 (\notes ->
-                    minDurationOfGroup notes
+                    Bms.minDurationOfGroup notes
                         >= TimeObject.resolution
                         / toFloat options.minDuration
-                        && not (doujiOshi notes)
-                        && List.all (not << isOverlappingGroup notes) scratchGroups
+                        && not (Bms.doujiOshi notes)
+                        && List.all (not << Bms.isOverlappingGroup notes) scratchGroups
                         && (if options.isIncludingLn then
                                 True
 
                             else
-                                Nonempty.all (not << isLn << .ext) notes
+                                Nonempty.all (not << Bms.isLn << .ext) notes
                            )
                 )
                 keyGroups
@@ -111,7 +111,7 @@ inscreaseScratch options groups =
                 x :: xs ->
                     let
                         ( ks, ss ) =
-                            List.partition (isOverlappingGroup x) xs
+                            List.partition (Bms.isOverlappingGroup x) xs
                     in
                     f ( Nonempty.map (\note -> { note | ext = Bms.setKey 0 note.ext }) x :: scratches_, ks ++ keys_ )
                         ss
@@ -119,63 +119,6 @@ inscreaseScratch options groups =
                 [] ->
                     ( scratches_, keys_ )
     in
-    List.sortBy (groupLength >> negate) willScratchGroups
+    List.sortBy (Bms.groupLength >> negate) willScratchGroups
         |> f ( scratchGroups, willKeyGroups )
         |> (\( a, b ) -> a ++ b)
-
-
-
------------------------------------------
---- helper function ---------------------
------------------------------------------
-
-
-isLn : NoteType -> Bool
-isLn nt =
-    case nt of
-        Long _ _ _ ->
-            True
-
-        _ ->
-            False
-
-
-doujiOshi : ListNonempty Note -> Bool
-doujiOshi =
-    Nonempty.toList >> List.foldl2 (\x y acc -> acc || Maybe.unwrap False (.time >> (==) x.time) y) False
-
-
-minDurationOfGroup : ListNonempty Note -> Float
-minDurationOfGroup =
-    Nonempty.toList >> List.foldl2 (\x y acc -> Maybe.unwrap acc (flip TimeObject.diff x >> min acc) y) 1000
-
-
-groupLength : ListNonempty Note -> Float
-groupLength notes =
-    groupRange notes |> uncurry (flip (-))
-
-
-isOverlappingGroup : ListNonempty Note -> ListNonempty Note -> Bool
-isOverlappingGroup notes1 notes2 =
-    let
-        ( h1, t1 ) =
-            groupRange notes1
-
-        ( h2, t2 ) =
-            groupRange notes2
-    in
-    not (h1 > t2 || h2 > t1)
-
-
-groupRange : ListNonempty Note -> ( Float, Float )
-groupRange =
-    let
-        lastTimeOfNote note =
-            case note.ext of
-                Long _ l _ ->
-                    note.time + l
-
-                _ ->
-                    note.time
-    in
-    Nonempty.foldl (\note -> Tuple.mapBoth (min note.time) (max (lastTimeOfNote note))) ( 999999, 0 )
