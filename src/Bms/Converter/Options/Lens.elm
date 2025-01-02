@@ -38,6 +38,11 @@ value =
     { getter = .value, setter = \x y -> { y | value = x, invalid = False } }
 
 
+chartType : Lens { a | chartType : b } b
+chartType =
+    { getter = .chartType, setter = \x y -> { y | chartType = x } }
+
+
 bandWidth : Lens { a | bandWidth : b } b
 bandWidth =
     { getter = .bandWidth, setter = \x y -> { y | bandWidth = x } }

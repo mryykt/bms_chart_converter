@@ -1,10 +1,11 @@
 module Bms.Converter.Options exposing (..)
 
 import Bms.Converter.Clustering.KernelFunction exposing (KernelFunction)
+import Bms.Types exposing (ChartType)
 
 
 type alias Options =
-    { bandWidth : Float, kernelFunction : KernelFunction, inscreaseScratchOptions : Maybe IncreaseScratchOptions }
+    { chartType : ChartType, bandWidth : Float, kernelFunction : KernelFunction, inscreaseScratchOptions : Maybe IncreaseScratchOptions }
 
 
 type alias IncreaseScratchOptions =

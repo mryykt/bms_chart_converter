@@ -104,8 +104,18 @@ update msg ({ state } as model) =
                     let
                         data =
                             Load.fromRawData raw
+
+                        ( newForm, newOptions ) =
+                            Form.setChartType data.chartType model.state.optionsForm |> Form.from
                     in
-                    ( { model | bms = data, converted = Nothing }, Cmd.none )
+                    ( { model
+                        | bms = data
+                        , converted = Nothing
+                        , options = newOptions
+                        , state = { state | optionsForm = newForm }
+                      }
+                    , Cmd.none
+                    )
 
                 -- ( Test data (List.map Load.separateByMeasure <| groupingNotes data.header.waves <| Load.separeteLn data.notes), Cmd.none )
                 Err _ ->

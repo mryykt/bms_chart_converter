@@ -3,6 +3,7 @@ module Bms.Converter.Options.Edit exposing (Msg, update, view)
 import Bms.Converter.Clustering.KernelFunction as Kernel
 import Bms.Converter.Options.Form as Form exposing (Field, Form)
 import Bms.Converter.Options.Lens as Lens exposing (..)
+import Bms.Types exposing (ChartType(..))
 import Dict exposing (Dict)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attributes exposing (class)
@@ -30,7 +31,11 @@ update msg form =
 view : Form -> Html (Msg Form)
 view form =
     Html.div []
-        [ text "number" "band width" bandWidth form
+        [ select "chart type"
+            (Dict.fromList [ ( "7-key", Key7 ), ( "5-key", Key5 ), ( "9-key", Key9 ), ( "14-key", Key14 ), ( "10-key", Key10 ) ])
+            chartType
+            form
+        , text "number" "band width" bandWidth form
         , select "kernel function"
             (Dict.fromList
                 [ ( "Gauss", Kernel.Gauss )

@@ -1,8 +1,9 @@
-module Bms.Converter.Options.Form exposing (Field, Form, from, init)
+module Bms.Converter.Options.Form exposing (Field, Form, from, init, setChartType)
 
 import Bms.Converter.Clustering.KernelFunction as Kernel exposing (KernelFunction)
 import Bms.Converter.Options exposing (IncreaseScratchOptions, Options)
 import Bms.Converter.Options.Lens as Lens exposing (..)
+import Bms.Types exposing (ChartType(..))
 import Form.Decoder as D exposing (Decoder)
 
 
@@ -11,7 +12,8 @@ type alias Field a =
 
 
 type alias Form =
-    { bandWidth : Field String
+    { chartType : Field ChartType
+    , bandWidth : Field String
     , kernelFunction : Field KernelFunction
 
     --
@@ -28,12 +30,18 @@ initField x =
 
 init : Form
 init =
-    { bandWidth = initField "480"
+    { chartType = initField Key7
+    , bandWidth = initField "480"
     , kernelFunction = initField Kernel.Gauss
     , increaseScratchOptions = initField False
     , minDuration = initField "8"
     , isIncludeLn = initField True
     }
+
+
+setChartType : ChartType -> Form -> Form
+setChartType ct form =
+    { form | chartType = initField ct }
 
 
 from : Form -> ( Form, Maybe Options )
@@ -65,7 +73,7 @@ decoder =
                     else
                         Ok Nothing
     in
-    D.top Options |> floatField bandWidth |> identityField kernelFunction |> D.field increaseScratchOptions
+    D.top Options |> identityField chartType |> floatField bandWidth |> identityField kernelFunction |> D.field increaseScratchOptions
 
 
 intField : Lens a (Field String) -> Decoder a (Lens a (Field String)) (Int -> b) -> Decoder a (Lens a (Field String)) b
