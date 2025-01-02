@@ -4,7 +4,8 @@ import Array
 import Basics.Extra2 exposing (ifelse, lessThan)
 import Bms.Load as Load
 import Bms.TimeObject as TimeObject
-import Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), key, setKey)
+import Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..))
+import Bms.Utils as Bms
 import Css exposing (..)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes exposing (css, id)
@@ -46,7 +47,7 @@ diffView old new =
                     LT
 
                 EQ ->
-                    compare (key a.ext) (key b.ext)
+                    compare (Bms.key a.ext) (Bms.key b.ext)
 
         oldChart =
             old.notes |> List.sortWith comp
@@ -66,10 +67,10 @@ diffView old new =
                     else if h1.ext == h2.ext then
                         { h1 | value = 5 } :: makeDiff t1 t2
 
-                    else if key h1.ext > key h2.ext then
+                    else if Bms.key h1.ext > Bms.key h2.ext then
                         { h2 | value = 1 } :: makeDiff oc t2
 
-                    else if key h1.ext < key h2.ext then
+                    else if Bms.key h1.ext < Bms.key h2.ext then
                         { h1 | value = 0 } :: makeDiff t1 nc
 
                     else
@@ -140,8 +141,8 @@ toLanes pSide bms notes =
         ( minValue, maxValue ) =
             laneRange bms.chartType
     in
-    gatherEqualsBy (.ext >> key) notes
-        |> List.map (\( a, b ) -> ( key a.ext, a :: b ))
+    gatherEqualsBy (.ext >> Bms.key) notes
+        |> List.map (\( a, b ) -> ( Bms.key a.ext, a :: b ))
         |> List.sortBy Tuple.first
         |> fill minValue maxValue
         |> ifelse (pSide == Right) rightScratch identity
@@ -225,7 +226,7 @@ whenStyle cond style =
 
 separateForDP : List Note -> ( List Note, List Note )
 separateForDP =
-    List.partition (lessThan 36 << key << .ext) >> Tuple.mapSecond (List.map (\n -> { n | ext = setKey (key n.ext - 36) n.ext }))
+    List.partition (lessThan 36 << Bms.key << .ext) >> Tuple.mapSecond (List.map (\n -> { n | ext = Bms.setKey (Bms.key n.ext - 36) n.ext }))
 
 
 rightScratch : List ( Int, List Note ) -> List ( Int, List Note )

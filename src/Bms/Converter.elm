@@ -8,7 +8,8 @@ import Basics.Extra2 exposing (ifelse, just)
 import Bms.Converter.Clustering
 import Bms.Converter.Options exposing (IncreaseScratchOptions, Options)
 import Bms.TimeObject as TimeObject
-import Bms.Types as Bms exposing (Bms, Note, NoteType(..), key)
+import Bms.Types as Bms exposing (Bms, Note, NoteType(..))
+import Bms.Utils as Bms
 import Dict exposing (Dict)
 import List.Extra as List
 import List.Extra2 as List
@@ -51,7 +52,7 @@ groupingNotes wavs =
         group =
             groupingByWaveFiles wavs
     in
-    List.partition (.ext >> key >> (==) 0)
+    List.partition (.ext >> Bms.key >> (==) 0)
         >> (\( a, b ) -> Nonempty.gatherEqualsByList (group << .value) b |> (\tail -> Maybe.unwrap tail (flip (::) tail) <| Nonempty.fromList a))
 
 

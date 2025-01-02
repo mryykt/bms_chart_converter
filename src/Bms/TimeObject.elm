@@ -2,7 +2,6 @@ module Bms.TimeObject exposing (..)
 
 import Array exposing (Array)
 import Basics.Extra2 exposing (..)
-import Bms.Utils as Bms
 import List.Nonempty as Nonempty
 import List.Nonempty.Extra as Nonempty
 import Maybe.Extra as Maybe

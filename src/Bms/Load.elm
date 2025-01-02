@@ -3,6 +3,7 @@ module Bms.Load exposing (fromRawData, separateByMeasure, separeteLn)
 import Array exposing (Array)
 import Bms.TimeObject as TimeObject
 import Bms.Types as Bms exposing (Bms, ChartType(..), Note, NoteType(..), Object, RawBms)
+import Bms.Utils as Bms
 import Dict
 import List.Extra as List
 import Maybe.Extra as Maybe

@@ -4,7 +4,7 @@ import Array
 import Basics.Extra exposing (..)
 import Bms.TimeObject as TimeObject
 import Bms.Types as Bms exposing (..)
-import Bms.Utils exposing (..)
+import Bms.Utils as Bms
 import Dict exposing (Dict)
 import File.Download as Download
 import List.Extra as List
