@@ -3,6 +3,8 @@ module Bms.TimeObject exposing (..)
 import Array exposing (Array)
 import Basics.Extra2 exposing (..)
 import Bms.Utils as Bms
+import List.Nonempty as Nonempty
+import List.Nonempty.Extra as Nonempty
 import Maybe.Extra as Maybe
 
 
@@ -48,6 +50,12 @@ fromMeasureAndFraction lines measure fraction =
     measureStart + fraction * (measureEnd - measureStart)
 
 
+measureLength : Array Float -> Int -> Float
+measureLength lines measure =
+    Maybe.map2 (-) (Array.get (measure + 1) lines) (Array.get measure lines)
+        |> Maybe.withDefault 960
+
+
 getFraction : Array Float -> TimeObject x -> Float
 getFraction lines obj =
     let
@@ -58,3 +66,25 @@ getFraction lines obj =
             Maybe.withDefault (measureStart + resolution) (Array.get (obj.measure + 1) lines)
     in
     (obj.time - measureStart) / (measureEnd - measureStart)
+
+
+toRatio : Float -> { denominator : Int, numerator : Int }
+toRatio x =
+    let
+        helper r =
+            let
+                x_ =
+                    toFloat r.numerator / toFloat r.denominator
+            in
+            if x_ == x || r.denominator == 192 then
+                r
+
+            else
+                helper <|
+                    Nonempty.minimumBy (\v -> abs (toFloat v.numerator / toFloat v.denominator - x)) <|
+                        Nonempty.fromPair { denominator = r.denominator + 1, numerator = r.numerator - 1 }
+                            [ { denominator = r.denominator + 1, numerator = r.numerator }
+                            , { denominator = r.denominator + 1, numerator = r.numerator + 1 }
+                            ]
+    in
+    helper { denominator = 1, numerator = 0 }

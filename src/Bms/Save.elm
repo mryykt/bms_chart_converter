@@ -88,7 +88,7 @@ oneChannel measure channel =
                 [] ->
                     []
     in
-    Nonempty.map (\obj -> ( obj, toRatio obj.fraction ))
+    Nonempty.map (\obj -> ( obj, TimeObject.toRatio obj.fraction ))
         >> Nonempty.sortBy (Tuple.second >> .denominator >> negate)
         >> Nonempty.toList
         >> f

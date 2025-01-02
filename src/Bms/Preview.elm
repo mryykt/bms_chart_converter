@@ -5,7 +5,6 @@ import Basics.Extra2 exposing (ifelse, lessThan)
 import Bms.Load as Load
 import Bms.TimeObject as TimeObject
 import Bms.Types exposing (Bms, ChartType(..), Note, NoteType(..), key, setKey)
-import Bms.Utils exposing (measureLength)
 import Css exposing (..)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes exposing (css, id)
@@ -91,7 +90,7 @@ oneMeasure isGrouped bms ( measure, notes ) =
         [ id <| "measure-" ++ String.fromInt measure
         , css
             [ position relative
-            , height (pct <| 20 * (measureLength bms.lines measure / TimeObject.resolution))
+            , height (pct <| 20 * (TimeObject.measureLength bms.lines measure / TimeObject.resolution))
             , width
                 (pct <| laneWidth bms.chartType)
             , minWidth
@@ -196,7 +195,7 @@ lane isGrouped pSide bms ( k, notes ) =
                             [ position absolute
                             , bottom (pct (100 * TimeObject.getFraction bms.lines n))
                             , width (pct 100)
-                            , height (pct <| 100 * l / measureLength bms.lines n.measure)
+                            , height (pct <| 100 * l / TimeObject.measureLength bms.lines n.measure)
                             , zIndex (int 100)
                             , backgroundColor (c n)
                             ]
