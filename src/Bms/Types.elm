@@ -143,7 +143,7 @@ decodeRawObject =
         (D.field "measure" D.int)
         (D.field "fraction" D.float)
         (D.field "value" D.string)
-        (D.field "channel" <| D.map (String.base 36) D.string)
+        (D.field "channel" <| D.map (String.baseFromString 36) D.string)
 
 
 sort : List (Object x v) -> List (Object x v)

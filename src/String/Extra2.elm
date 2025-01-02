@@ -1,8 +1,8 @@
 module String.Extra2 exposing (..)
 
 
-base : Int -> String -> Int
-base n =
+baseFromString : Int -> String -> Int
+baseFromString n =
     let
         f c a =
             let

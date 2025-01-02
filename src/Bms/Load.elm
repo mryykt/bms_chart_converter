@@ -29,7 +29,7 @@ fromRawData { name, header, mlens, data } =
                 (\x ->
                     let
                         value =
-                            String.base 36 x.value
+                            String.baseFromString 36 x.value
                     in
                     { time = TimeObject.fromMeasureAndFraction lines x.measure x.fraction
                     , measure = x.measure
@@ -83,12 +83,12 @@ fromRawData { name, header, mlens, data } =
                 Key5
 
         lnobj =
-            Dict.get "lnobj" header |> Maybe.andThen List.last |> Maybe.map (String.base 36)
+            Dict.get "lnobj" header |> Maybe.andThen List.last |> Maybe.map (String.baseFromString 36)
 
         waves =
             Dict.filter (\k _ -> String.startsWith "wav" k) header
                 |> Dict.toList
-                |> List.filterMap (\( k, v ) -> Maybe.map (Tuple.pair <| String.base 36 (String.dropLeft 3 k)) <| List.last v)
+                |> List.filterMap (\( k, v ) -> Maybe.map (Tuple.pair <| String.baseFromString 36 (String.dropLeft 3 k)) <| List.last v)
                 |> Dict.fromList
     in
     { name = name
