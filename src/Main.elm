@@ -179,12 +179,20 @@ view model =
             ]
         , let
             tabs =
-                case model.converted of
-                    Just _ ->
-                        [ Original, Option, Converted, Diff ]
+                [ Original, Option ]
+                    ++ (case model.converted of
+                            Just converted ->
+                                Converted
+                                    :: (if model.bms.chartType == converted.chartType then
+                                            [ Diff ]
 
-                    Nothing ->
-                        [ Original, Option ]
+                                        else
+                                            []
+                                       )
+
+                            Nothing ->
+                                []
+                       )
           in
           Bulma.tabs tabToString tabs TabSelected model.state.tab
         , case model.state.tab of
